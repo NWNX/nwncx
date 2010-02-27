@@ -12,6 +12,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX GUI", "plugins\gui\gu
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX DMTest Plugin", "plugins\dmtest\dmtest.vcproj", "{93F1CA99-82A0-4F2F-A09E-C7D74C01F396}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX NWNX Bridge", "plugins\nwnxbridge\nwnxbridge.vcproj", "{47455BF8-1209-45AC-B177-D75138AEBC5E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -42,6 +44,10 @@ Global
 		{93F1CA99-82A0-4F2F-A09E-C7D74C01F396}.Debug|Win32.Build.0 = Debug|Win32
 		{93F1CA99-82A0-4F2F-A09E-C7D74C01F396}.Release|Win32.ActiveCfg = Release|Win32
 		{93F1CA99-82A0-4F2F-A09E-C7D74C01F396}.Release|Win32.Build.0 = Release|Win32
+		{47455BF8-1209-45AC-B177-D75138AEBC5E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{47455BF8-1209-45AC-B177-D75138AEBC5E}.Debug|Win32.Build.0 = Debug|Win32
+		{47455BF8-1209-45AC-B177-D75138AEBC5E}.Release|Win32.ActiveCfg = Release|Win32
+		{47455BF8-1209-45AC-B177-D75138AEBC5E}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
