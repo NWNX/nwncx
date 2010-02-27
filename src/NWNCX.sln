@@ -1,0 +1,49 @@
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Detours", "..\lib\detours\src\Detours.vcproj", "{D3A8C510-DFB8-4534-AC84-B1EB4BC2C452}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Loader", "loader\loader.vcproj", "{C8CBAF86-80C5-4133-8ECC-4CEB65300382}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Core", "core\NWNCX Core.vcproj", "{18620380-AAA5-4171-9AE4-D7B99D1914FD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Test Plugin", "plugins\test\test.vcproj", "{86B2A8C2-22BD-4989-A8BD-8FAC80760D73}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX GUI", "plugins\gui\gui.vcproj", "{6D78D031-7742-4D74-9F32-4DE2643C0AD9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX DMTest Plugin", "plugins\dmtest\dmtest.vcproj", "{93F1CA99-82A0-4F2F-A09E-C7D74C01F396}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D3A8C510-DFB8-4534-AC84-B1EB4BC2C452}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D3A8C510-DFB8-4534-AC84-B1EB4BC2C452}.Debug|Win32.Build.0 = Debug|Win32
+		{D3A8C510-DFB8-4534-AC84-B1EB4BC2C452}.Release|Win32.ActiveCfg = Release|Win32
+		{D3A8C510-DFB8-4534-AC84-B1EB4BC2C452}.Release|Win32.Build.0 = Release|Win32
+		{C8CBAF86-80C5-4133-8ECC-4CEB65300382}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C8CBAF86-80C5-4133-8ECC-4CEB65300382}.Debug|Win32.Build.0 = Debug|Win32
+		{C8CBAF86-80C5-4133-8ECC-4CEB65300382}.Release|Win32.ActiveCfg = Release|Win32
+		{C8CBAF86-80C5-4133-8ECC-4CEB65300382}.Release|Win32.Build.0 = Release|Win32
+		{18620380-AAA5-4171-9AE4-D7B99D1914FD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{18620380-AAA5-4171-9AE4-D7B99D1914FD}.Debug|Win32.Build.0 = Debug|Win32
+		{18620380-AAA5-4171-9AE4-D7B99D1914FD}.Release|Win32.ActiveCfg = Release|Win32
+		{18620380-AAA5-4171-9AE4-D7B99D1914FD}.Release|Win32.Build.0 = Release|Win32
+		{86B2A8C2-22BD-4989-A8BD-8FAC80760D73}.Debug|Win32.ActiveCfg = Debug|Win32
+		{86B2A8C2-22BD-4989-A8BD-8FAC80760D73}.Debug|Win32.Build.0 = Debug|Win32
+		{86B2A8C2-22BD-4989-A8BD-8FAC80760D73}.Release|Win32.ActiveCfg = Release|Win32
+		{86B2A8C2-22BD-4989-A8BD-8FAC80760D73}.Release|Win32.Build.0 = Release|Win32
+		{6D78D031-7742-4D74-9F32-4DE2643C0AD9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6D78D031-7742-4D74-9F32-4DE2643C0AD9}.Debug|Win32.Build.0 = Debug|Win32
+		{6D78D031-7742-4D74-9F32-4DE2643C0AD9}.Release|Win32.ActiveCfg = Release|Win32
+		{6D78D031-7742-4D74-9F32-4DE2643C0AD9}.Release|Win32.Build.0 = Release|Win32
+		{93F1CA99-82A0-4F2F-A09E-C7D74C01F396}.Debug|Win32.ActiveCfg = Debug|Win32
+		{93F1CA99-82A0-4F2F-A09E-C7D74C01F396}.Debug|Win32.Build.0 = Debug|Win32
+		{93F1CA99-82A0-4F2F-A09E-C7D74C01F396}.Release|Win32.ActiveCfg = Release|Win32
+		{93F1CA99-82A0-4F2F-A09E-C7D74C01F396}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
