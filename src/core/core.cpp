@@ -1,6 +1,6 @@
 /***************************************************************************
 	NWNCX Core - Loads the plugins
-	Copyright (C) 2008 virusman (virusman@virusman.ru)
+	Copyright (C) 2008-2010 virusman (virusman@virusman.ru)
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,11 +19,26 @@
 ***************************************************************************/
 
 #include "core.h"
+#include "commonheaders.h"
 
 CHashTable Libraries;
 int debuglevel = 0;
 FILE *logFile;
 char logFileName[18] = "logs/nwncx.txt";
+
+// helper function prototype
+static void Log(int priority, const char *pcMsg, ...);
+
+static DWORD g_nwncxVersion = PLUGIN_MAKE_VERSION(0,1,0,0);
+PLUGINLINK pluginCoreLink;
+extern "C" int InitialiseModularEngine(void);
+extern "C" void DestroyModularEngine(void);
+//Hooks
+HANDLE hPluginsLoadedEvent;
+//Plugins
+typedef int (* Plugin_Init) ( PLUGINLINK * );
+typedef PLUGININFO * (* Plugin_Info) ( DWORD nwncxVersion );
+
 
 
 /***************************************************************************
@@ -69,6 +84,7 @@ void LoadLibraries()
 		strncpy (moduleName, pos, end - pos);
 
 		fprintf(logFile, "* Loading %s...\n", findData.cFileName);
+		fflush(logFile);
 		// try to load the library
 		HINSTANCE hDLL = LoadLibrary(findData.cFileName);
 		if (hDLL == NULL)
@@ -84,6 +100,25 @@ void LoadLibraries()
 		}
 		else
 		{
+			Plugin_Info getPluginInfo = (Plugin_Info) GetProcAddress(hDLL, "GetPluginInfo");
+			Plugin_Init initPlugin = (Plugin_Init) GetProcAddress(hDLL, "InitPlugin");
+			if(getPluginInfo && initPlugin)	{
+				Log(1, "%s: Implements the  plugin interface\n" ,findData.cFileName);
+				PLUGININFO * pi = 0;
+				int initResult;
+				pi = getPluginInfo(g_nwncxVersion);
+				if(!pi) {
+					Log(0, "%s: The plugin returned NULL on GetPluginInfo: skipping\n" ,findData.cFileName);
+					continue;
+				}
+				if((initResult = initPlugin(&pluginCoreLink)) != 0) {
+					Log(0, "%s: The plugin returned %d on InitPlugin: skipping\n" ,findData.cFileName, initResult);
+					continue;
+				}
+			}
+			else{
+				Log(0, "%s: Doesn't implement the plugin interface\n" ,findData.cFileName);
+			}
 			// create an instance of module
 			/*GetClassObject = (GETCLASSOBJECT)GetProcAddress(hDLL, "GetClassObject");
 			if (GetClassObject != NULL)
@@ -113,15 +148,67 @@ void LoadLibraries()
 	FindClose(hSearch);
 }
 
+static void Log(int priority, const char *pcMsg, ...)
+{
+	va_list argList;
+	char acBuffer[2048];
+
+	if (logFile && priority<=debuglevel)
+	{  
+		// build up the string
+		va_start(argList, pcMsg);
+		vsnprintf(acBuffer, 2047, pcMsg, argList);
+		acBuffer[2047]= 0;
+		va_end(argList);
+
+		// log string in file
+		fprintf (logFile, acBuffer);
+		fflush (logFile);
+	}
+
+	/*if(priority==0 && logFile != stdout)
+	{
+		printf(acBuffer);
+	}*/
+}
+
+void LoadCoreModule()
+{
+	pluginCoreLink.CallService=CallService;
+	pluginCoreLink.ServiceExists=ServiceExists;
+	pluginCoreLink.CreateServiceFunction=CreateServiceFunction;
+	pluginCoreLink.CreateTransientServiceFunction=CreateServiceFunction;
+	pluginCoreLink.DestroyServiceFunction=DestroyServiceFunction;
+	pluginCoreLink.CreateHookableEvent=CreateHookableEvent;
+	pluginCoreLink.DestroyHookableEvent=DestroyHookableEvent;
+	pluginCoreLink.HookEvent=HookEvent;
+	pluginCoreLink.UnhookEvent=UnhookEvent;
+	pluginCoreLink.NotifyEventHooks=NotifyEventHooks;
+	pluginCoreLink.SetHookDefaultForHookableEvent=SetHookDefaultForHookableEvent;
+	//pluginCoreLink.NotifyEventHooksDirect=CallHookSubscribers;
+
+	hPluginsLoadedEvent = CreateHookableEvent(EV_CORE_PLUGINSLOADED);
+}
+
+int TestFunction(WPARAM wParam,LPARAM lParam)
+{
+	printf("TestFunction here: %d:%d\n", wParam, lParam);
+	return 1;
+}
+
+
 DWORD WINAPI NWNCXInit(LPVOID lpParam) 
 {
 	CIniFile iniFile ("nwncx.ini");
+	InitialiseModularEngine();
+	LoadCoreModule();
 	debuglevel = iniFile.ReadInteger("NWNCX", "debuglevel", 0);
 	logFile = fopen(logFileName, "w");
 	fprintf(logFile, "NWN Client Extender 0.1\n");
-	fprintf(logFile, "(c) 2008 by virusman\n");
+	fprintf(logFile, "(c) 2008-2010 by virusman\n");
 	fprintf(logFile, "* Loading plugins...\n");
 	LoadLibraries();
+	NotifyEventHooks(hPluginsLoadedEvent, 0, 0);
 	fprintf(logFile, "* NWNCX activated.\n");
 	fflush(logFile);
 	return 0;
@@ -140,6 +227,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD dwReason, LPVOID lpReserved)
 	{
 		//fprintf(logFile, "* NWNX2 shutting down...\n");
 		Libraries.DeleteAll();
+		DestroyModularEngine();
 		////fprintf(logFile, "* NWNX2 shutdown successfull.\n");
 		//fclose(logFile);
 	}

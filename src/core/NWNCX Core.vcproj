@@ -123,7 +123,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\lib\detours\include&quot;;$(NOINHERIT)"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\include&quot;;&quot;$(SolutionDir)..\lib\detours\include&quot;;$(NOINHERIT)"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_WINDOWS;_USRDLL;TEST_EXPORTS;__WXMSW__"
 				RuntimeLibrary="2"
 				WarningLevel="3"
@@ -201,6 +201,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\lists.c"
+				>
+			</File>
+			<File
+				RelativePath=".\modules.c"
+				>
+			</File>
+			<File
 				RelativePath=".\StdAfx.cpp"
 				>
 			</File>
@@ -210,6 +218,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\commonheaders.h"
+				>
+			</File>
 			<File
 				RelativePath=".\core.h"
 				>
@@ -223,7 +235,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\lists.h"
+				>
+			</File>
+			<File
+				RelativePath=".\modules.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\pluginapi.h"
+				>
+			</File>
+			<File
+				RelativePath=".\resource.h"
+				>
+			</File>
+			<File
 				RelativePath=".\StdAfx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\system.h"
 				>
 			</File>
 		</Filter>
@@ -232,6 +264,10 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath=".\NWNCX_Core.rc"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
