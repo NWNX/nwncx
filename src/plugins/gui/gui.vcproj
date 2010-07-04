@@ -120,8 +120,9 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\lib\detours\include&quot;;$(NOINHERIT)"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\include&quot;;&quot;$(SolutionDir)..\lib\detours\include&quot;;$(NOINHERIT)"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				ExceptionHandling="0"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				AssemblerOutput="4"

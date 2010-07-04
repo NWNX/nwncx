@@ -3,6 +3,7 @@
 #include <tchar.h>
 #include "detours.h"
 #include "NWNGUI.h"
+#include <pluginapi.h>
 #include "CExoString.h"
 #include <gl/gl.h>
 
@@ -12,8 +13,41 @@ void (*OriginalRenderScene)();
 
 HWND *g_hWnd = (HWND *) 0x0092DC28;
 HWND *g_hRenderWnd = (HWND *) 0x0092DC2C;
+void InitPlugin();
+
+//////////////////////////////////////////////////////////////////////////
+PLUGINLINK *pluginLink = 0;
+PLUGININFO pluginInfo={
+	sizeof(PLUGININFO),
+	"NWNCX Test",
+	PLUGIN_MAKE_VERSION(0,0,0,2),
+	"The long description of your plugin, to go in the plugin options dialog",
+	"virusman",
+	"virusman@virusman.ru",
+	"© 2010 virusman",
+	"http://www.virusman.ru/",
+	0		//not transient
+};
+
+extern "C" __declspec(dllexport) PLUGININFO* GetPluginInfo(DWORD nwnxVersion)
+{
+	return &pluginInfo;
+}
+
+extern "C" __declspec(dllexport) int InitPlugin(PLUGINLINK *link)
+{
+	pluginLink=link;
+	InitPlugin();
+	return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
 
 static LONG (WINAPI * TrueChangeDisplaySettings)(LPDEVMODEA lpDevMode, DWORD dwFlags) = ChangeDisplaySettings;
+int (__fastcall *CGuiMan__HandleKeyPress)(void *pGuiMan, int edx, int key);
+int (__fastcall *CGuiMan__HandleKeyEvent)(void *pGuiMan, int edx, unsigned long key1, unsigned long key2);
+void (__fastcall *CGuiMan__HandleLMouseUp)(void *pGuiMan, int edx);
+void (__fastcall *CGuiMan__GetMousePos)(void *pGuiMan, int edx, int *x, int *y);
 
 char *buttonText = "NWNCX Custom Button";
 char *thisBuf;
@@ -25,6 +59,9 @@ const char *icon = "NWNX_ICON";
 
 int __stdcall RadialButtonCallback(int a1)
 {
+	CMyPanel *gui = new CMyPanel();
+	gui->Activate();
+	//delete gui;
 	return 1;
 }
 
@@ -150,6 +187,35 @@ void __fastcall RestoreAuroraDisplayMode(char *pAurInternal)
 
 }
 
+int __fastcall CGuiMan__HandleKeyPress_Hook(void *pGuiMan, int edx, int key)
+{
+	fprintf(logFile, "KeyPress: %x\n", key);
+	fflush(logFile);
+	CallService("NWClient/GUI/AppendToMsgBuffer", 0x80, (LPARAM) "KeyPress!");
+	return CGuiMan__HandleKeyPress(pGuiMan, edx, key);
+}
+
+int __fastcall CGuiMan__HandleKeyEventHook(void *pGuiMan, int edx, unsigned long key1, unsigned long key2)
+{
+	fprintf(logFile, "KeyEvent: %x, %x\n", key1, key2);
+	fflush(logFile);
+	CallService("NWClient/GUI/AppendToMsgBuffer", 0x80, (LPARAM) "KeyEvent!");
+	return CGuiMan__HandleKeyEvent(pGuiMan, edx, key1, key2);
+}
+
+void __fastcall CGuiMan__HandleLMouseUpHook(void *pGuiMan, int edx)
+{
+	int x, y;
+	char *msg = new char[64];
+	CGuiMan__GetMousePos(pGuiMan, 0, &x, &y);
+	sprintf(msg, "LMouseUp: %d, %d", x, y);
+	fprintf(logFile, "%s\n", msg);
+	fflush(logFile);
+	CallService("NWClient/GUI/AppendToMsgBuffer", 0x80, (LPARAM) msg);
+	free(msg);
+	CGuiMan__HandleLMouseUp(pGuiMan, edx);
+}
+
 void HookFunctions()
 {
 	LONG error;
@@ -158,14 +224,29 @@ void HookFunctions()
 	DetourUpdateThread(GetCurrentThread());
 	DWORD pTileRadialMenu = 0x00529740;
 	*(DWORD*)&OriginalTileRadialMenu = pTileRadialMenu;
-	DetourAttach(&(PVOID&)OriginalTileRadialMenu, TileRadialMenuHook);
+	error = DetourAttach(&(PVOID&)OriginalTileRadialMenu, TileRadialMenuHook);
+	fprintf(logFile, "Tile radial hook: %d\n", error);
 
 	/*DWORD pRenderScene = 0x00799100;
 	*(DWORD*)&OriginalRenderScene = pRenderScene;
 	DetourAttach(&(PVOID&)OriginalRenderScene, OpenGLHook);*/
 	
-	DetourAttach(&(PVOID&)TrueChangeDisplaySettings, ChangeDisplaySettingsHook);
+	//DetourAttach(&(PVOID&)TrueChangeDisplaySettings, ChangeDisplaySettingsHook);
+	/*
+	*(DWORD*)&CGuiMan__HandleKeyPress = 0x005DF3A0;
+	error = DetourAttach(&(PVOID&)CGuiMan__HandleKeyPress, CGuiMan__HandleKeyPress_Hook);
+	fprintf(logFile, "HandleKeyPress hook: %d\n", error);
 
+	*(DWORD*)&CGuiMan__HandleKeyEvent = 0x005DF3C0;
+	error = DetourAttach(&(PVOID&)CGuiMan__HandleKeyEvent, CGuiMan__HandleKeyEventHook);
+	fprintf(logFile, "HandleKeyEvent hook: %d\n", error);
+
+	*(DWORD*)&CGuiMan__HandleLMouseUp = 0x005DF820;
+	error = DetourAttach(&(PVOID&)CGuiMan__HandleLMouseUp, CGuiMan__HandleLMouseUpHook);
+	fprintf(logFile, "HandleLMouseUp hook: %d\n", error);
+
+	*(DWORD*)&CGuiMan__GetMousePos = 0x005DFC40;
+*/
 	error = DetourTransactionCommit();
 	if(error == NO_ERROR)
 		fprintf(logFile, "Hooked successfully\n");
@@ -173,7 +254,19 @@ void HookFunctions()
 		fprintf(logFile, "Hooking error: %d\n", error);
 }
 
+int OnClientLoaded(WPARAM wParam, LPARAM lParam)
+{
+	fprintf(logFile, "Game loaded\n");
+	fflush(logFile);
+	return 1;
+}
 
+int OnPluginsLoaded(WPARAM wParam,LPARAM lParam)
+{
+	fprintf(logFile, "Plugins loaded\n");
+	HookEvent("NWClient/ExoApp/Initialized", OnClientLoaded);
+	return 1;
+}
 
 void InitPlugin()
 {
@@ -181,8 +274,10 @@ void InitPlugin()
 	logFile = fopen(logFileName, "w");
 	fprintf(logFile, "NWN Client Extender 0.1 - GUI plugin\n");
 	fprintf(logFile, "(c) 2009 by virusman\n");
-	init();
+	//init();
 	HookFunctions();
+	HookEvent("NWNX/Core/PluginsLoaded", OnPluginsLoaded);
+	fflush(logFile);
 
 }
 
@@ -190,7 +285,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 {
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 	{
-		InitPlugin();
+		//InitPlugin();
 	}
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 	{

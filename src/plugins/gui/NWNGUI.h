@@ -1,5 +1,14 @@
 #include <windows.h>
 
+class CResRef
+{
+public:
+	char ResRef[16];
+
+	CResRef();
+	CResRef(char *);
+};
+
 class CGuiObject
 {
 public:
@@ -84,6 +93,8 @@ public:
 	virtual float GetFloat1();
 	virtual float GetFloat2();*/
 
+	void SetEnabled(int a1);
+
 	/*
 	00000000 vftable         dd ?
 	00000004 field_4         dd ?
@@ -96,7 +107,65 @@ public:
 
 	DWORD field_4;
 	void *AurObject;
-	DWORD field_C, field_10, field_14, field_18;
+	DWORD field_C, field_10, field_14, field_18, field_1C;
+};
+
+class CGuiPanel : public CGuiObject
+{
+public:
+	CGuiPanel();
+	virtual ~CGuiPanel(){};
+
+	/*
+	00000000 GuiObject CGuiObject ?
+	00000020 field_20 dd ?
+	00000024 field_24 dd ?
+	00000028 field_28 dd ?
+	0000002C field_2C dd ?
+	00000030 field_30 dd ?
+	00000034 field_34 dd ?
+	00000038 field_38 dd ?
+	0000003C AutoDeleteOnClose dd ?
+	00000040 field_40 dd ?
+	00000044 field_44 dd ?
+	00000048 field_48 db ?
+	00000049 LayoutFile CResRef ?
+	00000059 db ? ; undefined
+	0000005A db ? ; undefined
+	0000005B db ? ; undefined
+	0000005C LayoutFileGFF dd ?
+	00000060 field_60 dd ?
+	00000064 NumTags dd ?
+	*/
+
+	void SetLayoutFile(CResRef sFileName);
+	void SetAutoDeleteOnClose();
+
+
+	DWORD field_20, field_24, field_28, field_2C, field_30,
+		field_34, field_38, AutoDeleteOnClose, field_40, field_44;
+	BYTE field_48;
+	CResRef LayoutFile;
+	void *LayoutFileGFF;
+	DWORD field_60;
+	DWORD NumTags;
+};
+
+class CGuiModalPanel : public CGuiPanel
+{
+public:
+	//CGuiModalPanel(int modal);
+	virtual ~CGuiModalPanel(){};
+
+	void Activate();
+
+	DWORD bModal;
+};
+
+class CMyPanel : public CGuiModalPanel
+{
+public:
+	CMyPanel();
 };
 
 void init();
