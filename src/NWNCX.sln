@@ -1,5 +1,5 @@
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Detours", "..\lib\detours\src\Detours.vcproj", "{D3A8C510-DFB8-4534-AC84-B1EB4BC2C452}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Loader", "loader\loader.vcproj", "{C8CBAF86-80C5-4133-8ECC-4CEB65300382}"

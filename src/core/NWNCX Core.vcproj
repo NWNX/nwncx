@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="9,00"
 	Name="NWNCX Core"
 	ProjectGUID="{18620380-AAA5-4171-9AE4-D7B99D1914FD}"
 	RootNamespace="NWNCX"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -40,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\lib\detours\include&quot;;$(NOINHERIT)"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\lib\detours\include&quot;;&quot;$(SolutionDir)..\include&quot;;$(NOINHERIT)"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;TEST_EXPORTS;__WXMSW__;__WXDEBUG__"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -70,6 +71,8 @@
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				EntryPointSymbol=""
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -89,9 +92,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -150,6 +150,8 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
@@ -170,9 +172,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
