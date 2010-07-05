@@ -124,6 +124,7 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				ExceptionHandling="0"
 				RuntimeLibrary="2"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				AssemblerOutput="4"
 				AssemblerListingLocation="$(IntDir)\"
@@ -190,11 +191,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gui.cpp"
+				RelativePath=".\CMyPanel.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\NWNGUI.cpp"
+				RelativePath=".\gui.cpp"
 				>
 			</File>
 		</Filter>
@@ -208,7 +209,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\NWNGUI.h"
+				RelativePath=".\CMyPanel.h"
 				>
 			</File>
 		</Filter>
@@ -217,6 +218,62 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+		</Filter>
+		<Filter
+			Name="NWN GUI"
+			>
+			<File
+				RelativePath=".\nwngui\CenteredPanel.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\nwngui\CenteredPanel.h"
+				>
+			</File>
+			<File
+				RelativePath=".\nwngui\CGuiButton.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\nwngui\CGuiButton.h"
+				>
+			</File>
+			<File
+				RelativePath=".\nwngui\CGuiModalPanel.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\nwngui\CGuiModalPanel.h"
+				>
+			</File>
+			<File
+				RelativePath=".\nwngui\CGuiObject.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\nwngui\CGuiObject.h"
+				>
+			</File>
+			<File
+				RelativePath=".\nwngui\CGuiPanel.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\nwngui\CGuiPanel.h"
+				>
+			</File>
+			<File
+				RelativePath=".\nwngui\NWNCommon.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\nwngui\NWNCommon.h"
+				>
+			</File>
+			<File
+				RelativePath=".\nwngui\NWNGUI.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

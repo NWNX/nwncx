@@ -1,0 +1,6 @@
+#include "NWNCommon.h"
+#include "CGuiObject.h"
+#include "CGuiPanel.h"
+#include "CGuiModalPanel.h"
+#include "CGuiButton.h"
+#include "CenteredPanel.h"

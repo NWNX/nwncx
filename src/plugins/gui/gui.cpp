@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <tchar.h>
 #include "detours.h"
-#include "NWNGUI.h"
+#include "CMyPanel.h"
 #include <pluginapi.h>
 #include "CExoString.h"
 #include <gl/gl.h>
