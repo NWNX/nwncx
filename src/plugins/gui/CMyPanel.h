@@ -1,7 +1,7 @@
 #include <windows.h>
 #include "nwngui/NWNGUI.h"
 
-class CMyPanel : public CenteredPanel<CGuiModalPanel>
+class CMyPanel : public CenteredPanel<CGuiPanel>
 {
 public:
 	CMyPanel();

@@ -239,6 +239,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\nwngui\CGuiLabel.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\nwngui\CGuiLabel.h"
+				>
+			</File>
+			<File
 				RelativePath=".\nwngui\CGuiModalPanel.cpp"
 				>
 			</File>

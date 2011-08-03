@@ -41,6 +41,8 @@ public:
 	virtual void VFunc38(){};
 	virtual void* VFunc39(){return NULL;};
 
+	void Activate();
+	void Deactivate(int);
 	void SetLayoutFile(CResRef sFileName);
 	void SetAutoDeleteOnClose();
 	void SetPositionScreenCenter();
