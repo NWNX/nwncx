@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="NWN GUI">
+      <UniqueIdentifier>{811196f1-d5b9-4ddb-8fab-7afe168edc5c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CExoString.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CMyPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nwngui\CenteredPanel.cpp">
+      <Filter>NWN GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="nwngui\CGuiButton.cpp">
+      <Filter>NWN GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="nwngui\CGuiLabel.cpp">
+      <Filter>NWN GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="nwngui\CGuiModalPanel.cpp">
+      <Filter>NWN GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="nwngui\CGuiObject.cpp">
+      <Filter>NWN GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="nwngui\CGuiPanel.cpp">
+      <Filter>NWN GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="nwngui\NWNCommon.cpp">
+      <Filter>NWN GUI</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CExoString.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CMyPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nwngui\CenteredPanel.h">
+      <Filter>NWN GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="nwngui\CGuiButton.h">
+      <Filter>NWN GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="nwngui\CGuiLabel.h">
+      <Filter>NWN GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="nwngui\CGuiModalPanel.h">
+      <Filter>NWN GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="nwngui\CGuiObject.h">
+      <Filter>NWN GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="nwngui\CGuiPanel.h">
+      <Filter>NWN GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="nwngui\NWNCommon.h">
+      <Filter>NWN GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="nwngui\NWNGUI.h">
+      <Filter>NWN GUI</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

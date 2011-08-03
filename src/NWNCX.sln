@@ -1,18 +1,22 @@
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Detours", "..\lib\detours\src\Detours.vcproj", "{D3A8C510-DFB8-4534-AC84-B1EB4BC2C452}"
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Detours", "..\lib\detours\src\Detours.vcxproj", "{D3A8C510-DFB8-4534-AC84-B1EB4BC2C452}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Loader", "loader\loader.vcproj", "{C8CBAF86-80C5-4133-8ECC-4CEB65300382}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Loader", "loader\loader.vcxproj", "{C8CBAF86-80C5-4133-8ECC-4CEB65300382}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Core", "core\NWNCX Core.vcproj", "{18620380-AAA5-4171-9AE4-D7B99D1914FD}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Core", "core\NWNCX Core.vcxproj", "{18620380-AAA5-4171-9AE4-D7B99D1914FD}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Test Plugin", "plugins\test\test.vcproj", "{86B2A8C2-22BD-4989-A8BD-8FAC80760D73}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Test Plugin", "plugins\test\test.vcxproj", "{86B2A8C2-22BD-4989-A8BD-8FAC80760D73}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX GUI", "plugins\gui\gui.vcproj", "{6D78D031-7742-4D74-9F32-4DE2643C0AD9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX GUI", "plugins\gui\gui.vcxproj", "{6D78D031-7742-4D74-9F32-4DE2643C0AD9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX DMTest Plugin", "plugins\dmtest\dmtest.vcproj", "{93F1CA99-82A0-4F2F-A09E-C7D74C01F396}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX DMTest Plugin", "plugins\dmtest\dmtest.vcxproj", "{93F1CA99-82A0-4F2F-A09E-C7D74C01F396}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX NWNX Bridge", "plugins\nwnxbridge\nwnxbridge.vcproj", "{47455BF8-1209-45AC-B177-D75138AEBC5E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX NWNX Bridge", "plugins\nwnxbridge\nwnxbridge.vcxproj", "{47455BF8-1209-45AC-B177-D75138AEBC5E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Premium Unpacker Plugin", "plugins\premium_unpacker\PremiumUnpacker.vcxproj", "{809B0BA4-E84C-11DF-BD57-C43CE0D72085}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Disable Master Server Plugin", "plugins\disablems\disablems.vcxproj", "{75009A9E-53FB-48B8-B80E-8583F50DF3ED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +52,14 @@ Global
 		{47455BF8-1209-45AC-B177-D75138AEBC5E}.Debug|Win32.Build.0 = Debug|Win32
 		{47455BF8-1209-45AC-B177-D75138AEBC5E}.Release|Win32.ActiveCfg = Release|Win32
 		{47455BF8-1209-45AC-B177-D75138AEBC5E}.Release|Win32.Build.0 = Release|Win32
+		{809B0BA4-E84C-11DF-BD57-C43CE0D72085}.Debug|Win32.ActiveCfg = Debug|Win32
+		{809B0BA4-E84C-11DF-BD57-C43CE0D72085}.Debug|Win32.Build.0 = Debug|Win32
+		{809B0BA4-E84C-11DF-BD57-C43CE0D72085}.Release|Win32.ActiveCfg = Release|Win32
+		{809B0BA4-E84C-11DF-BD57-C43CE0D72085}.Release|Win32.Build.0 = Release|Win32
+		{75009A9E-53FB-48B8-B80E-8583F50DF3ED}.Debug|Win32.ActiveCfg = Debug|Win32
+		{75009A9E-53FB-48B8-B80E-8583F50DF3ED}.Debug|Win32.Build.0 = Debug|Win32
+		{75009A9E-53FB-48B8-B80E-8583F50DF3ED}.Release|Win32.ActiveCfg = Release|Win32
+		{75009A9E-53FB-48B8-B80E-8583F50DF3ED}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
