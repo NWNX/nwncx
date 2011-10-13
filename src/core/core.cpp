@@ -204,8 +204,8 @@ DWORD WINAPI NWNCXInit(LPVOID lpParam)
 	LoadCoreModule();
 	debuglevel = iniFile.ReadInteger("NWNCX", "debuglevel", 0);
 	logFile = fopen(logFileName, "w");
-	fprintf(logFile, "NWN Client Extender 0.1\n");
-	fprintf(logFile, "(c) 2008-2010 by virusman\n");
+	fprintf(logFile, "NWN Client Extender 0.2\n");
+	fprintf(logFile, "(c) 2008-2011 by virusman\n");
 	fprintf(logFile, "* Loading plugins...\n");
 	LoadLibraries();
 	NotifyEventHooks(hPluginsLoadedEvent, 0, 0);
