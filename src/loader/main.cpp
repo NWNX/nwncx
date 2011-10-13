@@ -36,7 +36,7 @@ int WINAPI WinMain(
 	ZeroMemory(&pi, sizeof(pi));
 	si.cb = sizeof(si);
 
-	MessageBox(NULL, lpCmdLine, "Cmd Line", MB_OK);
+	//MessageBox(NULL, lpCmdLine, "Cmd Line", MB_OK);
 
 	DetourCreateProcessWithDll("nwmain.exe", lpCmdLine, NULL, NULL, TRUE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi, "NWNCX.dll", NULL);
 	return 0;
