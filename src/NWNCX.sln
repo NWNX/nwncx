@@ -18,6 +18,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Premium Unpacker Plug
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Disable Master Server Plugin", "plugins\disablems\disablems.vcxproj", "{75009A9E-53FB-48B8-B80E-8583F50DF3ED}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Tweaks Plugin", "plugins\tweaks\tweaks.vcxproj", "{7A452EFA-979A-4B48-B03C-83B4560661E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -60,6 +62,10 @@ Global
 		{75009A9E-53FB-48B8-B80E-8583F50DF3ED}.Debug|Win32.Build.0 = Debug|Win32
 		{75009A9E-53FB-48B8-B80E-8583F50DF3ED}.Release|Win32.ActiveCfg = Release|Win32
 		{75009A9E-53FB-48B8-B80E-8583F50DF3ED}.Release|Win32.Build.0 = Release|Win32
+		{7A452EFA-979A-4B48-B03C-83B4560661E8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7A452EFA-979A-4B48-B03C-83B4560661E8}.Debug|Win32.Build.0 = Debug|Win32
+		{7A452EFA-979A-4B48-B03C-83B4560661E8}.Release|Win32.ActiveCfg = Release|Win32
+		{7A452EFA-979A-4B48-B03C-83B4560661E8}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
