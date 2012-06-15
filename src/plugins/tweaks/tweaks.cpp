@@ -12,6 +12,7 @@ char logFileName[] = "logs/nwncx_tweaks.txt";
 
 void (*CNWCItem__LoadVisualEffect_origmid)();
 void (*CNWCVisualEffectOnObject__LoadBeam_origmid)();
+void (*CNWCVisualEffectOnObject__ApplyTextureReplace_origmid)();
 
 void EnableWrite (unsigned long location)
 {
@@ -114,6 +115,51 @@ void __declspec( naked )  CNWCVisualEffectOnObject__LoadBeam_hookmid()
 	}
 }
 
+int __stdcall CNWCVisualEffectOnObject__ApplyTextureReplace_Hook(int nType, CExoString &sFxName)
+{
+	nType += 10;
+	fprintf(logFile, "CNWCVisualEffectOnObject__ApplyTextureReplace_Hook: %d\n", nType);
+	if(nType == 10 || nType == 20 || nType == 30 || nType == 40 || nType == 50 || nType == 60)
+		return false;
+
+	CExoString sModel;
+	C2DA tVisualFX("vfx_texreplace", 0);
+	tVisualFX.Load2DArray();
+	tVisualFX.GetCExoStringEntry(nType, "Texture", &sModel);
+	if(sModel.Length > 0){
+		sFxName = sModel;
+		
+		fprintf(logFile, "sFxName: %s\n", sFxName.Text);
+		fflush(logFile);
+		return true;
+	}
+	else
+		return false;
+}
+
+unsigned int CNWCVisualEffectOnObject__ApplyTextureReplace_eax;
+
+void __declspec( naked )  CNWCVisualEffectOnObject__ApplyTextureReplace_hookmid()
+{
+	__asm{
+		mov CNWCVisualEffectOnObject__ApplyTextureReplace_eax, eax
+		lea ecx, [esp+4h]
+		push ecx
+		push eax
+		call CNWCVisualEffectOnObject__ApplyTextureReplace_Hook
+		test eax, eax
+		jz orig
+		mov ecx, 005701B6h
+		jmp ecx
+
+	orig:
+		mov eax, CNWCVisualEffectOnObject__ApplyTextureReplace_eax
+		jmp CNWCVisualEffectOnObject__ApplyTextureReplace_origmid
+	}
+}
+
+void __declspec( naked )  CNWSpellArray__Load_hookmid()
+
 void HookFunctions()
 {
 	LONG error;
@@ -122,13 +168,16 @@ void HookFunctions()
 
 	*(DWORD*)&CNWCItem__LoadVisualEffect_origmid = 0x004EA0EA;
 	*(DWORD*)&CNWCVisualEffectOnObject__LoadBeam_origmid = 0x00574112;
-	//*(DWORD*)&CNWCItem__LoadVisualEffect_origmid = 0x004EA40B;
+	*(DWORD*)&CNWCVisualEffectOnObject__ApplyTextureReplace_origmid = 0x00570126;
 	
 	error = DetourAttach(&(PVOID&)CNWCItem__LoadVisualEffect_origmid, CNWCItem__LoadVisualEffect_hookmid);
 	fprintf(logFile, "CNWCItem::LoadVisualEffect hook: %d\n", error);
 
 	error = DetourAttach(&(PVOID&)CNWCVisualEffectOnObject__LoadBeam_origmid, CNWCVisualEffectOnObject__LoadBeam_hookmid);
 	fprintf(logFile, "CNWCVisualEffectOnObject::LoadBeam hook: %d\n", error);
+
+	error = DetourAttach(&(PVOID&)CNWCVisualEffectOnObject__ApplyTextureReplace_origmid, CNWCVisualEffectOnObject__ApplyTextureReplace_hookmid);
+	fprintf(logFile, "CNWCVisualEffectOnObject::ApplyTextureReplace hook: %d\n", error);
 
 	error = DetourTransactionCommit();
 	if(error == NO_ERROR)
@@ -143,7 +192,7 @@ void InitPlugin()
 {
 	//DebugBreak();
 	logFile = fopen(logFileName, "w");
-	fprintf(logFile, "NWN Client Extender - Tweaks plugin v.0.2.2\n");
+	fprintf(logFile, "NWN Client Extender - Tweaks plugin v.0.2.3\n");
 	fprintf(logFile, "(c) 2011-2012 by virusman\n");
 	fflush(logFile);
 	PatchImage();
