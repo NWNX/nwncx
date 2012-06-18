@@ -13,6 +13,7 @@ char logFileName[] = "logs/nwncx_tweaks.txt";
 void (*CNWCItem__LoadVisualEffect_origmid)();
 void (*CNWCVisualEffectOnObject__LoadBeam_origmid)();
 void (*CNWCVisualEffectOnObject__ApplyTextureReplace_origmid)();
+void (*CNWSpellArray__Load_origmid)();
 
 void EnableWrite (unsigned long location)
 {
@@ -158,7 +159,37 @@ void __declspec( naked )  CNWCVisualEffectOnObject__ApplyTextureReplace_hookmid(
 	}
 }
 
+void __stdcall CNWSpellArray__Load_Hook(CExoString &sProjTypeName, int &nProjTypeValue)
+{
+	if(sProjTypeName == "burstup")
+		nProjTypeValue = 4;
+	else if(sProjTypeName == "linkedburstup")
+		nProjTypeValue = 10;
+	else if(sProjTypeName == "tripleballistic")
+		nProjTypeValue = 11;
+	else if(sProjTypeName == "tripleballistic2")
+		nProjTypeValue = 12;
+	else if(sProjTypeName == "doubleballistic")
+		nProjTypeValue = 13;
+	fprintf(logFile, "CNWSpellArray__Load_Hook: %s = %d\n", sProjTypeName.Text, nProjTypeValue);
+	fflush(logFile);
+}
+
+unsigned int CNWSpellArray__Load_eax;
+
 void __declspec( naked )  CNWSpellArray__Load_hookmid()
+{
+	__asm{
+		mov CNWSpellArray__Load_eax, eax
+		lea ecx, [esp+10h]   //projType int pointer
+		push ecx
+		lea ecx, [esp+18h]  //string
+		push ecx
+		call CNWSpellArray__Load_Hook
+		mov eax, CNWSpellArray__Load_eax
+		jmp CNWSpellArray__Load_origmid
+	}
+}
 
 void HookFunctions()
 {
@@ -169,6 +200,7 @@ void HookFunctions()
 	*(DWORD*)&CNWCItem__LoadVisualEffect_origmid = 0x004EA0EA;
 	*(DWORD*)&CNWCVisualEffectOnObject__LoadBeam_origmid = 0x00574112;
 	*(DWORD*)&CNWCVisualEffectOnObject__ApplyTextureReplace_origmid = 0x00570126;
+	*(DWORD*)&CNWSpellArray__Load_origmid = 0x004F9A0B;
 	
 	error = DetourAttach(&(PVOID&)CNWCItem__LoadVisualEffect_origmid, CNWCItem__LoadVisualEffect_hookmid);
 	fprintf(logFile, "CNWCItem::LoadVisualEffect hook: %d\n", error);
@@ -179,6 +211,9 @@ void HookFunctions()
 	error = DetourAttach(&(PVOID&)CNWCVisualEffectOnObject__ApplyTextureReplace_origmid, CNWCVisualEffectOnObject__ApplyTextureReplace_hookmid);
 	fprintf(logFile, "CNWCVisualEffectOnObject::ApplyTextureReplace hook: %d\n", error);
 
+	error = DetourAttach(&(PVOID&)CNWSpellArray__Load_origmid, CNWSpellArray__Load_hookmid);
+	fprintf(logFile, "CNWSpellArray::Load hook: %d\n", error);
+	
 	error = DetourTransactionCommit();
 	if(error == NO_ERROR)
 		fprintf(logFile, "Hooked successfully\n");
@@ -192,7 +227,7 @@ void InitPlugin()
 {
 	//DebugBreak();
 	logFile = fopen(logFileName, "w");
-	fprintf(logFile, "NWN Client Extender - Tweaks plugin v.0.2.3\n");
+	fprintf(logFile, "NWN Client Extender - Tweaks plugin v.0.2.4\n");
 	fprintf(logFile, "(c) 2011-2012 by virusman\n");
 	fflush(logFile);
 	PatchImage();

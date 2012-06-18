@@ -14,6 +14,7 @@ public:
 	CExoString & operator=(char const *);
 	CExoString & operator=(CExoString const &);
 	CExoString operator+(CExoString const &) const;
+	int operator==(char const *);
 
 };
 
