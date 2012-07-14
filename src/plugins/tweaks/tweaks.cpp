@@ -4,6 +4,7 @@
 #include "detours.h"
 #include "CExoString.h"
 #include "C2DA.h"
+#include "Gob.h"
 
 char *thisBuf;
 
@@ -14,6 +15,7 @@ void (*CNWCItem__LoadVisualEffect_origmid)();
 void (*CNWCVisualEffectOnObject__LoadBeam_origmid)();
 void (*CNWCVisualEffectOnObject__ApplyTextureReplace_origmid)();
 void (*CNWSpellArray__Load_origmid)();
+void (*CNWCCreatureAppearance__CreateHead_origmid)();
 
 void EnableWrite (unsigned long location)
 {
@@ -34,6 +36,8 @@ void PatchImage()
 	fprintf(logFile, "Patching: now %x\n", *(unsigned int *)pPatch);
 	fflush(logFile);*/
 }
+
+// ################################## WEAPON VFX ##################################
 
 int __stdcall CNWCItem__LoadVisualEffect_Hook(int nType, CExoString &sFxName)
 {
@@ -76,6 +80,8 @@ void __declspec( naked ) CNWCItem__LoadVisualEffect_hookmid()
 	}
 }
 
+// ################################## BEAM VFX ##################################
+
 int __stdcall CNWCVisualEffectOnObject__LoadBeam_Hook(int nType, CExoString &sFxName)
 {
 	fprintf(logFile, "CNWCVisualEffectOnObject__LoadBeam_Hook: %d\n", nType);
@@ -115,6 +121,8 @@ void __declspec( naked )  CNWCVisualEffectOnObject__LoadBeam_hookmid()
 		jmp CNWCVisualEffectOnObject__LoadBeam_origmid
 	}
 }
+
+// ################################## TEXTURE REPLACE ##################################
 
 int __stdcall CNWCVisualEffectOnObject__ApplyTextureReplace_Hook(int nType, CExoString &sFxName)
 {
@@ -159,6 +167,8 @@ void __declspec( naked )  CNWCVisualEffectOnObject__ApplyTextureReplace_hookmid(
 	}
 }
 
+// ################################## PROJECTILE TYPES ##################################
+
 void __stdcall CNWSpellArray__Load_Hook(CExoString &sProjTypeName, int &nProjTypeValue)
 {
 	if(sProjTypeName == "burstup")
@@ -191,6 +201,39 @@ void __declspec( naked )  CNWSpellArray__Load_hookmid()
 	}
 }
 
+// ################################## HEADS ##################################
+
+int __stdcall CNWCCreatureAppearance__CreateHead_Hook(Gob *pHelmModel)
+{
+	fprintf(logFile, "Head update\n");
+	if(pHelmModel){
+		fprintf(logFile, "Helm model name: %s, %s\n", pHelmModel->GetName(), pHelmModel->GetModelName());
+		void *pPart = pHelmModel->GetPart("nwncx_openface");
+		fprintf(logFile, "Part: %x\n", pPart);
+		if(pPart)
+			return true;
+	}
+	fflush(logFile);
+	return false;
+}
+
+void __declspec( naked ) CNWCCreatureAppearance__CreateHead_hookmid()
+{
+	__asm{
+		push ebp
+		call CNWCCreatureAppearance__CreateHead_Hook
+		test eax, eax
+		jz orig
+		mov ecx, 00540FF2h
+		jmp ecx
+
+		orig:
+		jmp CNWCCreatureAppearance__CreateHead_origmid
+	}
+}
+
+// ################################## HOOKS ##################################
+
 void HookFunctions()
 {
 	LONG error;
@@ -201,6 +244,7 @@ void HookFunctions()
 	*(DWORD*)&CNWCVisualEffectOnObject__LoadBeam_origmid = 0x00574112;
 	*(DWORD*)&CNWCVisualEffectOnObject__ApplyTextureReplace_origmid = 0x00570126;
 	*(DWORD*)&CNWSpellArray__Load_origmid = 0x004F9A0B;
+	*(DWORD*)&CNWCCreatureAppearance__CreateHead_origmid = 0x00540FE5;
 	
 	error = DetourAttach(&(PVOID&)CNWCItem__LoadVisualEffect_origmid, CNWCItem__LoadVisualEffect_hookmid);
 	fprintf(logFile, "CNWCItem::LoadVisualEffect hook: %d\n", error);
@@ -213,6 +257,9 @@ void HookFunctions()
 
 	error = DetourAttach(&(PVOID&)CNWSpellArray__Load_origmid, CNWSpellArray__Load_hookmid);
 	fprintf(logFile, "CNWSpellArray::Load hook: %d\n", error);
+
+	error = DetourAttach(&(PVOID&)CNWCCreatureAppearance__CreateHead_origmid, CNWCCreatureAppearance__CreateHead_hookmid);
+	fprintf(logFile, "CNWCCreatureAppearance::CreateHeadAppearance hook: %d\n", error);
 	
 	error = DetourTransactionCommit();
 	if(error == NO_ERROR)
@@ -227,7 +274,7 @@ void InitPlugin()
 {
 	//DebugBreak();
 	logFile = fopen(logFileName, "w");
-	fprintf(logFile, "NWN Client Extender - Tweaks plugin v.0.2.4\n");
+	fprintf(logFile, "NWN Client Extender - Tweaks plugin v.0.2.5\n");
 	fprintf(logFile, "(c) 2011-2012 by virusman\n");
 	fflush(logFile);
 	PatchImage();

@@ -102,12 +102,14 @@
     <ClCompile Include="C2DA.cpp" />
     <ClCompile Include="CExoString.cpp" />
     <ClCompile Include="CResRef.cpp" />
+    <ClCompile Include="Gob.cpp" />
     <ClCompile Include="tweaks.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C2DA.h" />
     <ClInclude Include="CExoString.h" />
     <ClInclude Include="CResRef.h" />
+    <ClInclude Include="Gob.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="symbols.asm" />

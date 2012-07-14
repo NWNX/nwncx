@@ -21,6 +21,9 @@
     <ClCompile Include="CResRef.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Gob.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CExoString.h">
@@ -30,6 +33,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CResRef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Gob.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
