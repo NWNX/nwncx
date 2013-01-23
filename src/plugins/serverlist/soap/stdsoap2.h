@@ -50,6 +50,7 @@ compiling, linking, and/or using OpenSSL is allowed.
 A commercial use license is available from Genivia, Inc., contact@genivia.com
 --------------------------------------------------------------------------------
 */
+#pragma once
 
 #define GSOAP_VERSION 20811
 

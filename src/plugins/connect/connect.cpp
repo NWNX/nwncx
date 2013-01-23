@@ -3,7 +3,7 @@
 #include <tchar.h>
 #include <pluginapi.h>
 #include "detours.h"
-#include <m_common.h>
+//#include <m_common.h>
 #include <nwnapi\nwnapi.h>
 #include <nwnapi\CNWMessage.h>
 #include <nwnapi\CTlkTable.h>

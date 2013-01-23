@@ -7,7 +7,7 @@ The generated code is released under one of the following licenses:
 This program is released under the GPL with the additional exemption that
 compiling, linking, and/or using OpenSSL is allowed.
 */
-
+#pragma once
 #ifndef soapStub_H
 #define soapStub_H
 #define SOAP_NAMESPACE_OF_ns2	"http://api.mst.valhallalegends.com/NWNMasterServerAPI/Imports"

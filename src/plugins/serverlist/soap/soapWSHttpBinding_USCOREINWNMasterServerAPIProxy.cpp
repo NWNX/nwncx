@@ -7,7 +7,7 @@ The generated code is released under one of the following licenses:
 This program is released under the GPL with the additional exemption that
 compiling, linking, and/or using OpenSSL is allowed.
 */
-
+#pragma once
 #include "soapWSHttpBinding_USCOREINWNMasterServerAPIProxy.h"
 
 WSHttpBinding_USCOREINWNMasterServerAPIProxy::WSHttpBinding_USCOREINWNMasterServerAPIProxy()
