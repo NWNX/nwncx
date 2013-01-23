@@ -1,0 +1,16 @@
+/bin/debug
+/bin/dist
+/bin/release
+/lib/detours/lib/*.exp
+/lib/detours/lib/*.lib
+/lib/detours/bin/*.dll
+/lib/detours/bin/*.pdb
+*.pdb
+*.user
+*.obj
+*.ncb
+*.sdf
+*.suo
+Debug
+Release
+ipch
