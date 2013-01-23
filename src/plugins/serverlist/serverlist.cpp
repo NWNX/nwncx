@@ -143,7 +143,7 @@ void AddServers(NWNMSClient *c) {
 			*(servers->NWGameServer[i]->ILREnforced),
 			*(servers->NWGameServer[i]->LocalVault),
 			*(servers->NWGameServer[i]->ExpansionsMask),
-			true);
+			false);
 
 	}
 
