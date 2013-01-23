@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Source Files\SOAP">
+      <UniqueIdentifier>{6663fb78-8262-4e66-ab9e-d9e9f8c0365b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\nwnapi">
+      <UniqueIdentifier>{b2f48cf7-4852-4634-8fca-81efd7f6ad9f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\include\nwnapi\custom\nwn_globals.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="serverlist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="soap\soapWSHttpBinding_USCOREINWNMasterServerAPIProxy.cpp">
+      <Filter>Source Files\SOAP</Filter>
+    </ClCompile>
+    <ClCompile Include="soap\soapC.cpp">
+      <Filter>Source Files\SOAP</Filter>
+    </ClCompile>
+    <ClCompile Include="soap\stdsoap2.cpp">
+      <Filter>Source Files\SOAP</Filter>
+    </ClCompile>
+    <ClCompile Include="NWMSClient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="..\..\..\include\nwnapi\symbols.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="soap\stdsoap2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="soap\soapStub.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="soap\soapH.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="soap\soapWSHttpBinding_USCOREINWNMasterServerAPIProxy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NWNMSClient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\nwnapi\CAppManager.h">
+      <Filter>Header Files\nwnapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\nwnapi\CClientExoApp.h">
+      <Filter>Header Files\nwnapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\nwnapi\CClientExoAppInternal.h">
+      <Filter>Header Files\nwnapi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\nwnapi\CExoString.h">
+      <Filter>Header Files\nwnapi</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="soap\WSHttpBinding_USCOREINWNMasterServerAPI.nsmap">
+      <Filter>Header Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

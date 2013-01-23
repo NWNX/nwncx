@@ -1,0 +1,22 @@
+
+#include "soapH.h"
+SOAP_NMAC struct Namespace namespaces[] =
+{
+//DSS	{"SOAP-ENV", "http://www.w3.org/2003/05/soap-envelope", "http://schemas.xmlsoap.org/soap/envelope/", NULL},
+//DSS	{"SOAP-ENC", "http://www.w3.org/2003/05/soap-encoding", "http://schemas.xmlsoap.org/soap/encoding/", NULL},
+//DSS	{"xsi", "http://www.w3.org/2001/XMLSchema-instance", "http://www.w3.org/*/XMLSchema-instance", NULL},
+//DSS	{"xsd", "http://www.w3.org/2001/XMLSchema", "http://www.w3.org/*/XMLSchema", NULL},
+
+	{"SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/", NULL, NULL},  //DSS
+	{"SOAP-ENC", "http://schemas.xmlsoap.org/soap/encoding/", NULL, NULL}, //DSS
+	{"xsi", "http://www.w3.org/2001/XMLSchema-instance", NULL, NULL}, //DSS
+	{"xsd", "http://www.w3.org/2001/XMLSchema", NULL, NULL}, //DSS
+
+
+	{"ns4", "http://schemas.datacontract.org/2004/07/NWN", NULL, NULL},
+	{"ns5", "http://schemas.microsoft.com/2003/10/Serialization/Arrays", NULL, NULL},
+	{"ns3", "http://schemas.microsoft.com/2003/10/Serialization/", NULL, NULL},
+	{"ns1", "http://api.mst.valhallalegends.com/NWNMasterServerAPI", NULL, NULL},
+	{"ns6", "http://tempuri.org/", NULL, NULL},
+	{NULL, NULL, NULL, NULL}
+};

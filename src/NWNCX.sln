@@ -22,6 +22,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Tweaks Plugin", "plug
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Connect Plugin", "plugins\connect\connect.vcxproj", "{2F3BA464-18CB-48D0-90DD-8D6839115DE3}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NWNCX Serverlist Plugin", "plugins\serverlist\serverlist.vcxproj", "{1F979FA4-D838-4203-BA59-A1300045F4D6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -72,6 +74,10 @@ Global
 		{2F3BA464-18CB-48D0-90DD-8D6839115DE3}.Debug|Win32.Build.0 = Debug|Win32
 		{2F3BA464-18CB-48D0-90DD-8D6839115DE3}.Release|Win32.ActiveCfg = Release|Win32
 		{2F3BA464-18CB-48D0-90DD-8D6839115DE3}.Release|Win32.Build.0 = Release|Win32
+		{1F979FA4-D838-4203-BA59-A1300045F4D6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1F979FA4-D838-4203-BA59-A1300045F4D6}.Debug|Win32.Build.0 = Debug|Win32
+		{1F979FA4-D838-4203-BA59-A1300045F4D6}.Release|Win32.ActiveCfg = Release|Win32
+		{1F979FA4-D838-4203-BA59-A1300045F4D6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
