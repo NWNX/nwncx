@@ -94,12 +94,13 @@ void AddServers(NWNMSClient *c) {
 	char buildstring[10];
 	char *IP_ptr, *port_ptr;
 
-
 	// The original function has a "Clear" routine that seems to be run after it.  I want this to run 
 	// after that routine, so that is what the wait is about.  It works too.... after a fashion.
 	Sleep(500);
 
 	servers = c->GetServersInRoom(c->room);
+
+	g_pAppManager->ClientExoApp->Internal->m_pConnectionLib->ClearServers();
 
 	for(i=0; i < servers->__sizeNWGameServer;i++) {
 		if(*(servers->NWGameServer[i]->Online) != 1) continue;
@@ -147,6 +148,7 @@ void AddServers(NWNMSClient *c) {
 
 	}
 
+	g_pAppManager->ClientExoApp->Internal->m_pConnectionLib->UpdateConnectionPhase(9, "");
 
 	delete client;
 	threadlock_JoinGroup = 0; // release the lock, the thread is done.
@@ -154,9 +156,7 @@ void AddServers(NWNMSClient *c) {
 
 int (__fastcall *CGameSpyClient__JoinGroupRoom)(void *pGameSpy, int edx, int nRoom);
 int __fastcall CGameSpyClient__JoinGroupRoom_Hook(void *pGameSpy, int edx, int nRoom)
-{
-	
-		
+{		
 	SIZE_T stack_size = 0;
 	SECURITY_ATTRIBUTES sa;
 	SECURITY_DESCRIPTOR SD;
@@ -192,8 +192,8 @@ int __fastcall CGameSpyClient__JoinGroupRoom_Hook(void *pGameSpy, int edx, int n
 
 	//AddServers(client);  -- thread now handles this call
 
-
-	return 	CGameSpyClient__JoinGroupRoom(pGameSpy, edx, nRoom);
+	//return 	CGameSpyClient__JoinGroupRoom(pGameSpy, edx, nRoom);
+	return true;
 }
 
 void (__fastcall *CConnectionLib__UpdateGameSpyClient)();

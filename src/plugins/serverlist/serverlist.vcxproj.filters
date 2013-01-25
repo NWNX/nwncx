@@ -73,6 +73,9 @@
     <ClInclude Include="..\..\..\include\nwnapi\CExoString.h">
       <Filter>Header Files\nwnapi</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\nwnapi\CConnectionLib.h">
+      <Filter>Header Files\nwnapi</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="soap\WSHttpBinding_USCOREINWNMasterServerAPI.nsmap">

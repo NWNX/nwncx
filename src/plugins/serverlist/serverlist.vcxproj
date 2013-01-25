@@ -112,6 +112,7 @@
     <ClInclude Include="..\..\..\include\nwnapi\CAppManager.h" />
     <ClInclude Include="..\..\..\include\nwnapi\CClientExoApp.h" />
     <ClInclude Include="..\..\..\include\nwnapi\CClientExoAppInternal.h" />
+    <ClInclude Include="..\..\..\include\nwnapi\CConnectionLib.h" />
     <ClInclude Include="..\..\..\include\nwnapi\CExoString.h" />
     <ClInclude Include="NWNMSClient.h" />
     <ClInclude Include="soap\soapH.h" />

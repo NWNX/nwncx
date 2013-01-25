@@ -19,6 +19,14 @@ _TEXT	SEGMENT
 ??1CExoString@@QAE@XZ ENDP
 _TEXT	ENDS
 
+PUBLIC	??0CExoString@@QAE@XZ
+_TEXT	SEGMENT
+??0CExoString@@QAE@XZ PROC
+	mov eax, 004F85A0h
+	jmp dword ptr eax
+??0CExoString@@QAE@XZ ENDP
+_TEXT	ENDS
+
 PUBLIC	?ReadINT@CNWMessage@@QAEHH@Z
 _TEXT	SEGMENT
 ?ReadINT@CNWMessage@@QAEHH@Z PROC
@@ -89,6 +97,22 @@ _TEXT	SEGMENT
 	mov eax, 008029C0h
 	jmp dword ptr eax
 ?AddServer@CConnectionLib@@QAEXPAXPAD1HHHH1HH1HHH11HHHHH_N@Z ENDP
+_TEXT	ENDS
+
+PUBLIC	?ClearServers@CConnectionLib@@QAEXXZ
+_TEXT	SEGMENT
+?ClearServers@CConnectionLib@@QAEXXZ PROC
+	mov eax, 00802A50h
+	jmp dword ptr eax
+?ClearServers@CConnectionLib@@QAEXXZ ENDP
+_TEXT	ENDS
+
+PUBLIC	?UpdateConnectionPhase@CConnectionLib@@QAEXEABVCExoString@@@Z
+_TEXT	SEGMENT
+?UpdateConnectionPhase@CConnectionLib@@QAEXEABVCExoString@@@Z PROC
+	mov eax, 008027E0h
+	jmp dword ptr eax
+?UpdateConnectionPhase@CConnectionLib@@QAEXEABVCExoString@@@Z ENDP
 _TEXT	ENDS
 
 END
