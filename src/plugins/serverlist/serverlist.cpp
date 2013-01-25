@@ -19,7 +19,7 @@
 #define DATA_FETCHING 2
 #define DATA_READY 3
 
-#define LOG_THREADS 0
+#define LOG_THREADS 1
 
 FILE *logFile;
 char logFileName[] = "logs/nwncx_serverlist.txt";
@@ -177,7 +177,7 @@ void Poll() {
 	}
 	ReleaseMutex(threadlock_FetchServers);
 	if(LOG_THREADS) {
-		fprintf(logFile, "RELEASED (C)\n");
+		fprintf(logFile, "RELEASED (M)\n");
 		fflush(logFile);
 	}
 
