@@ -14,13 +14,20 @@
 #include <nwnapi\custom\nwn_globals.h>
 #include <nwnapi\custom\nwn_globals.cpp>
 
+#define DATA_DOING_NOTHING 0
+#define DATA_OLD 1
+#define DATA_FETCHING 2
+#define DATA_READY 3
+#define UI_LOAD_TIME 2000
 
 
 FILE *logFile;
 char logFileName[] = "logs/nwncx_serverlist.txt";
 NWNMSClient *client;
+int join_attempted = 0;
 
 int threadlock_JoinGroup = 0;
+int data_status = DATA_DOING_NOTHING;   // a righteous initialization.
 
 void InitPlugin();
 
@@ -84,75 +91,57 @@ int FilterGameType(int groupID, int skywingCode) {
 */
 
 
-void AddServers(NWNMSClient *c) {
-	int i, portnumber;
-	ArrayOfNWGameServer *servers;	
-	char *pvpfull = "FULL";
-	char *pvpparty = "PARTY";
-	char *pvpnone = "NONE";
-	char *str_ptr;
-	char buildstring[10];
-	char *IP_ptr, *port_ptr;
 
-	// The original function has a "Clear" routine that seems to be run after it.  I want this to run 
-	// after that routine, so that is what the wait is about.  It works too.... after a fashion.
-	Sleep(500);
+void FetchServers(int nRoom) {
 
-	servers = c->GetServersInRoom(c->room);
+	fprintf(logFile, "Child thread: %d\n", GetThreadId(GetCurrentThread()));
+	fflush(logFile);
 
-	g_pAppManager->ClientExoApp->Internal->m_pConnectionLib->ClearServers();
-
-	for(i=0; i < servers->__sizeNWGameServer;i++) {
-		if(*(servers->NWGameServer[i]->Online) != 1) continue;
-		// if(FilterGameType(c->room, *(servers->NWGameServer[i]->GameType))) continue;
-
-		IP_ptr = strtok(servers->NWGameServer[i]->ServerAddress, ":");
-		port_ptr = IP_ptr + strlen(IP_ptr) + 1;   // I never really trusted strtok(NULL) anyway :)
-
-		if(*(servers->NWGameServer[i]->PVPLevel) == 0) {
-			str_ptr = pvpnone;
-		}
-		else if(*(servers->NWGameServer[i]->PVPLevel) == 1) {
-			str_ptr = pvpparty;
-		}
-		else {
-			str_ptr = pvpfull;
-		}
-		itoa(*(servers->NWGameServer[i]->BuildNumber), buildstring, 10);
-		portnumber = atoi(port_ptr);
-//		fprintf(logFile, "Online: %d Server Address: %s  Port Number: %s Room: %d\n", *(servers->NWGameServer[i]->Online), IP_ptr, port_ptr, *(servers->NWGameServer[i]->GameType));		
-
-		g_pAppManager->ClientExoApp->Internal->m_pConnectionLib->AddServer(
-			(void *)i, 
-			servers->NWGameServer[i]->ServerName, 
-			servers->NWGameServer[i]->ModuleName,
-			*(servers->NWGameServer[i]->ActivePlayerCount),
-			*(servers->NWGameServer[i]->MaximumPlayerCount),
-			*(servers->NWGameServer[i]->MinimumLevel),
-			*(servers->NWGameServer[i]->MaximumLevel),
-			str_ptr,
-			75, // making up ping initially...
-			*(servers->NWGameServer[i]->PrivateServer), 
-			IP_ptr,
-			portnumber, 
-			*(servers->NWGameServer[i]->OnePartyOnly),
-			*(servers->NWGameServer[i]->PlayerPause),
-			buildstring, 
-			servers->NWGameServer[i]->ServerDescription, 
-			c->room, // I think this is groupID
-			*(servers->NWGameServer[i]->ELCEnforced),
-			*(servers->NWGameServer[i]->ILREnforced),
-			*(servers->NWGameServer[i]->LocalVault),
-			*(servers->NWGameServer[i]->ExpansionsMask),
-			false);
-
+	// You can actually make this true, at this place, if you click like a rabid monkey on every room in the game
+	// It is supposed to be locked....
+	if(data_status == DATA_READY) { 
+		fprintf(logFile, "Yup, I'm actually bailing out of this thread.\n");
+		ExitThread(0);
+		return;
 	}
 
-	g_pAppManager->ClientExoApp->Internal->m_pConnectionLib->UpdateConnectionPhase(9, "");
+	data_status = DATA_FETCHING;
 
-	delete client;
+	client = new NWNMSClient(logFile, g_pAppManager);
+
+//	client->threadId = GetThreadId(GetCurrentThread()); 
+
+	client->GetServersInRoom(nRoom);
+
+	data_status = DATA_READY;
+
+	fprintf(logFile, "::DATA READY\n");
+	fflush(logFile);
+
+	
 	threadlock_JoinGroup = 0; // release the lock, the thread is done.
 }
+
+void Poll() {
+
+	if(data_status == DATA_READY) {
+		client->AddServers();
+		delete client;
+		data_status = DATA_OLD;
+		fprintf(logFile, "Done.\n");
+		fflush(logFile);
+	}
+	/* 
+	If you uncomment this, there will be thousands of lines in your log :)  
+	if(data_status == DATA_FETCHING) {
+		fprintf(logFile, "Main loop() visited the Poll and data is still fetching.  Nothing returned.\n");
+		fflush(logFile);
+	}
+
+	*/
+
+}
+
 
 int (__fastcall *CGameSpyClient__JoinGroupRoom)(void *pGameSpy, int edx, int nRoom);
 int __fastcall CGameSpyClient__JoinGroupRoom_Hook(void *pGameSpy, int edx, int nRoom)
@@ -160,37 +149,33 @@ int __fastcall CGameSpyClient__JoinGroupRoom_Hook(void *pGameSpy, int edx, int n
 	SIZE_T stack_size = 0;
 	SECURITY_ATTRIBUTES sa;
 	SECURITY_DESCRIPTOR SD;
-	LPTHREAD_START_ROUTINE  start_address = (LPTHREAD_START_ROUTINE) AddServers;
+	LPTHREAD_START_ROUTINE  start_address = (LPTHREAD_START_ROUTINE) FetchServers;
 	LPDWORD threadID;	
 	HANDLE thandle;
 
-	while(threadlock_JoinGroup) {
-		// do nothing.  Wait for the other thread to finish and then we can continue.
-		// Race condition is low, unless someone goes clicktastic in the game UI
+	join_attempted = 1;
+
+
+	// don't make another thread until the last one is done.
+	while(threadlock_JoinGroup) {   // blocking main thread
 		continue;
 	}
-	
+	threadlock_JoinGroup = 1;	
 
-	client = new NWNMSClient(logFile);
-
-	fprintf(logFile, "Requesting room %d\n", nRoom);
-	fflush(logFile);
-
-	client->room = nRoom;
-	client->threadId = GetThreadId(GetCurrentThread());
-		
 	InitializeSecurityDescriptor(&SD, SECURITY_DESCRIPTOR_REVISION);
 	SetSecurityDescriptorDacl(&SD, TRUE, NULL, FALSE);
     sa.nLength = sizeof (SECURITY_ATTRIBUTES);
     sa.lpSecurityDescriptor = &SD;
     sa.bInheritHandle = TRUE;
 
-	thandle = CreateThread(&sa, 0, start_address, (void *)client, CREATE_SUSPENDED, NULL);
 
-	threadlock_JoinGroup = 1;
+	fprintf(logFile, "Main Thread ID=%d\n", GetThreadId(GetCurrentThread()));
+	fflush(logFile);
+
+	thandle = CreateThread(&sa, 0, start_address, (void *)nRoom, CREATE_SUSPENDED, NULL);
 	ResumeThread(thandle);
 
-	//AddServers(client);  -- thread now handles this call
+
 
 	//return 	CGameSpyClient__JoinGroupRoom(pGameSpy, edx, nRoom);
 	return true;
@@ -199,7 +184,11 @@ int __fastcall CGameSpyClient__JoinGroupRoom_Hook(void *pGameSpy, int edx, int n
 void (__fastcall *CConnectionLib__UpdateGameSpyClient)();
 void __fastcall CConnectionLib__UpdateGameSpyClient_Hook(CConnectionLib *pConnectionLib)
 {
-	//Insert polling code here
+
+	if(join_attempted && !threadlock_JoinGroup) {
+		Poll();
+	}
+
 	CConnectionLib__UpdateGameSpyClient();
 }
 

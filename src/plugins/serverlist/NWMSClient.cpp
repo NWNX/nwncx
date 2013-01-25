@@ -18,36 +18,52 @@
 #include "soap/WSHttpBinding_USCOREINWNMasterServerAPI.nsmap"
 
 
-// Turn gSOAP generated names into more human friendly names.
-typedef WSHttpBinding_USCOREINWNMasterServerAPIProxy NWNMasterServerAPIProxy;
-typedef _ns1__GetOnlineServerList GetOnlineServerList;
-typedef _ns1__GetOnlineServerListResponse GetOnlineServerListResponse;
-typedef ns4__ArrayOfNWGameServer ArrayOfNWGameServer;
-typedef ns4__NWGameServer NWGameServer;
-typedef _ns1__LookupServerByGameType GameLookup;
-typedef _ns1__LookupServerByGameTypeResponse GameLookupResponse;
 const char *endpoint = "http://api.mst.valhallalegends.com/NWNMasterServerAPI/NWNMasterServerAPI.svc/ASMX";
 
 
 
 
 
-NWNMSClient::NWNMSClient(FILE *logFile)
+NWNMSClient::NWNMSClient(FILE *logFile, CAppManager *app)
 {
 	this->logFile = logFile;
+	AppManager = app;
+
+	listserver = NULL;
+	game = NULL;
+	servers = NULL;
+	srv_list = NULL;
+	srv_response = NULL;
+
 }
 
-ArrayOfNWGameServer *NWNMSClient::GetServersInRoom(int nRoom)
+NWNMSClient::~NWNMSClient() {
+	if(listserver != NULL) delete listserver;
+
+	if(srv_list!= NULL) {
+		if(srv_list->Product != NULL) {
+			free(srv_list->Product);
+		}
+		if(srv_list->GameType != NULL) {
+			free(srv_list->GameType);
+		}
+		delete srv_list;
+	}
+
+	if(srv_response != NULL) delete srv_response;
+
+	// servers is actually a pointer to srv_response, so nothing to free.
+
+
+
+}
+
+// should be called from child thread
+void NWNMSClient::GetServersInRoom(int nRoom)
 {
 	int res, numServers;
-	NWNMasterServerAPIProxy   *listserver = NULL;
-	ArrayOfNWGameServer *game_list = NULL;
-	NWGameServer *game = NULL;
 
-//	GetOnlineServerListResponse *srv_response = NULL;
-//	GetOnlineServerList *srv_list = NULL;
-	GameLookup *srv_list = NULL;
-	GameLookupResponse *srv_response;
+	this->room = nRoom;
 
 	listserver = new NWNMasterServerAPIProxy();
 	listserver->soap_endpoint = endpoint;
@@ -69,28 +85,27 @@ ArrayOfNWGameServer *NWNMSClient::GetServersInRoom(int nRoom)
 		fprintf(logFile, GetErrorMessage(res));
 		free(srv_list->Product);
 		free(srv_list->GameType);
-		return NULL;
+		return;
 	}
 	
 	
-	game_list = srv_response->LookupServerByGameTypeResult; // srv_response->GetOnlineServerListResult;
-	if(game_list == NULL) {
+	servers = srv_response->LookupServerByGameTypeResult; // srv_response->GetOnlineServerListResult;
+	if(servers == NULL) {
 		//MessageBoxA(NULL, "This should never happen; The Gamelist is NULL - (no results, maybe?)", "Error", MB_TASKMODAL | MB_TOPMOST | MB_ICONERROR | MB_OK);		
 		fprintf(logFile, "This should never happen; The Gamelist is NULL - (no results, maybe?)");
 		free(srv_list->Product);
 		free(srv_list->GameType);
-		return NULL;
+		return;
 	}
 
 	
-	numServers = game_list->__sizeNWGameServer;
+	numServers = servers->__sizeNWGameServer;
 //	fprintf(logFile, "Got servers: %d\n", numServers);
 //	fflush(logFile);
 
 	free(srv_list->Product);
 	free(srv_list->GameType);
 
-	return game_list;
 }
 
 const char * NWNMSClient::GetErrorMessage(int res)
@@ -174,5 +189,77 @@ int NWNMSClient::RoomToSkywing(int room) {
 	default:
 		return 3; break;  // just put it in Roleplay :P
 	}
+
+}
+
+
+
+// Now called by the main thread....
+void NWNMSClient::AddServers() {
+	int i, portnumber;
+	char *pvpfull = "FULL";
+	char *pvpparty = "PARTY";
+	char *pvpnone = "NONE";
+	char *str_ptr;
+	char buildstring[10];
+	char *IP_ptr, *port_ptr;
+
+	// The original function has a "Clear" routine that seems to be run after it.  I want this to run 
+	// after that routine, so that is what the wait is about.  It works too.... after a fashion.
+	// Sleep(500);
+
+
+	this->AppManager->ClientExoApp->Internal->m_pConnectionLib->ClearServers();
+
+	for(i=0; i < servers->__sizeNWGameServer;i++) {
+		if(*(servers->NWGameServer[i]->Online) != 1) continue;
+
+		IP_ptr = strtok(servers->NWGameServer[i]->ServerAddress, ":");
+		port_ptr = IP_ptr + strlen(IP_ptr) + 1;   // I never really trusted strtok(NULL) anyway :)
+
+		if(*(servers->NWGameServer[i]->PVPLevel) == 0) {
+			str_ptr = pvpnone;
+		}
+		else if(*(servers->NWGameServer[i]->PVPLevel) == 1) {
+			str_ptr = pvpparty;
+		}
+		else {
+			str_ptr = pvpfull;
+		}
+		itoa(*(servers->NWGameServer[i]->BuildNumber), buildstring, 10);
+		portnumber = atoi(port_ptr);
+//		fprintf(logFile, "Online: %d Server Address: %s  Port Number: %s Room: %d\n", *(servers->NWGameServer[i]->Online), IP_ptr, port_ptr, *(servers->NWGameServer[i]->GameType));		
+
+		this->AppManager->ClientExoApp->Internal->m_pConnectionLib->AddServer(
+			(void *)i, 
+			servers->NWGameServer[i]->ServerName, 
+			servers->NWGameServer[i]->ModuleName,
+			*(servers->NWGameServer[i]->ActivePlayerCount),
+			*(servers->NWGameServer[i]->MaximumPlayerCount),
+			*(servers->NWGameServer[i]->MinimumLevel),
+			*(servers->NWGameServer[i]->MaximumLevel),
+			str_ptr,
+			75, // making up ping initially...
+			*(servers->NWGameServer[i]->PrivateServer), 
+			IP_ptr,
+			portnumber, 
+			*(servers->NWGameServer[i]->OnePartyOnly),
+			*(servers->NWGameServer[i]->PlayerPause),
+			buildstring, 
+			servers->NWGameServer[i]->ServerDescription, 
+			this->room, // I think this is groupID
+			*(servers->NWGameServer[i]->ELCEnforced),
+			*(servers->NWGameServer[i]->ILREnforced),
+			*(servers->NWGameServer[i]->LocalVault),
+			*(servers->NWGameServer[i]->ExpansionsMask),
+			false);
+
+	}
+
+
+	this->AppManager->ClientExoApp->Internal->m_pConnectionLib->UpdateConnectionPhase(9, "");
+
+	fprintf(logFile, "%d Servers added\n", i);
+	fflush(logFile);
 
 }
