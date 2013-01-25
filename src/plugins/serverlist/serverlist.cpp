@@ -152,33 +152,6 @@ void AddServers(NWNMSClient *c) {
 	threadlock_JoinGroup = 0; // release the lock, the thread is done.
 }
 
-
-
-/*void (__fastcall *CConnectionLib__AddServer)(void *pConnectionLib, int edx,         
-	     void * Server,
-         const char * Hostname,
-         const char * MapName,
-         int NumPlayers,
-         int MaxPlayers,
-         int LevelRngLow,
-         int LevelRngHigh,
-         const char * PVP, // "NONE", "PARTY", "FULL"
-         int PingTime,
-         int HasPlayerPassword,
-         const char *IPAddress,
-         int PortNumber,
-         int OnePartyOnly,
-         int PlayerPause,
-         const char *Build,
-         const char *Details,
-         int GroupId,
-         int ELC,
-         int ILR,
-         int LocalVault,
-         int Expansions,
-         bool BuildNumberFilter
-);*/
-
 int (__fastcall *CGameSpyClient__JoinGroupRoom)(void *pGameSpy, int edx, int nRoom);
 int __fastcall CGameSpyClient__JoinGroupRoom_Hook(void *pGameSpy, int edx, int nRoom)
 {
@@ -220,17 +193,24 @@ int __fastcall CGameSpyClient__JoinGroupRoom_Hook(void *pGameSpy, int edx, int n
 	//AddServers(client);  -- thread now handles this call
 
 
-	return 	CGameSpyClient__JoinGroupRoom(pGameSpy, edx, nRoom);;
+	return 	CGameSpyClient__JoinGroupRoom(pGameSpy, edx, nRoom);
 }
 
+void (__fastcall *CConnectionLib__UpdateGameSpyClient)();
+void __fastcall CConnectionLib__UpdateGameSpyClient_Hook(CConnectionLib *pConnectionLib)
+{
+	//Insert polling code here
+	CConnectionLib__UpdateGameSpyClient();
+}
 
 void HookFunctions()
 {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
 	*(DWORD*)&CGameSpyClient__JoinGroupRoom = 0x00805080;
-	//*(DWORD*)&CConnectionLib__AddServer = 0x008029C0;
-	int success = DetourAttach(&(PVOID&)CGameSpyClient__JoinGroupRoom, CGameSpyClient__JoinGroupRoom_Hook)==0;
+	*(DWORD*)&CConnectionLib__UpdateGameSpyClient = 0x008027A0;
+	int success = DetourAttach(&(PVOID&)CGameSpyClient__JoinGroupRoom, CGameSpyClient__JoinGroupRoom_Hook)==0  &&
+				  DetourAttach(&(PVOID&)CConnectionLib__UpdateGameSpyClient, CConnectionLib__UpdateGameSpyClient_Hook)==0;
 
 	fprintf(logFile, "Hooked: %d\n", success);
 	DetourTransactionCommit();
@@ -238,7 +218,6 @@ void HookFunctions()
 
 void InitPlugin()
 {
-	//DebugBreak();
 	logFile = fopen(logFileName, "w");
 	fprintf(logFile, "NWCX Serverlist plugin 1.0 (PRE-RELEASE)\n");
 	fprintf(logFile, "(c) 2013 by virusman & addicted2rpg\n");
