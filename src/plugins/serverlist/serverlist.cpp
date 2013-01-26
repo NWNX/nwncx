@@ -19,7 +19,14 @@
 #define DATA_FETCHING 2
 #define DATA_READY 3
 
-#define LOG_THREADS 1
+// The compiler optimizer will remove these when set to 0, so don't worry about all inefficient lines that call them.
+// LOG_THREADS will log thread behavior - very spammy but useful.
+// USE_REDUNDANT_LOCKS are data-access locks of data that is used mutually by both threads, but the normal
+// threads in place should prevent them from being accessed at once.  If turning these on and then off 
+// makes a difference in the way things behave (it shouldn't), then that will alert you to a bug.  This can be 
+// helpful to finding "the ghost in the machine" that accompanies multithreading issues -- addicted.  
+#define LOG_THREADS 0
+#define USE_REDUNDANT_LOCKS 0
 
 FILE *logFile;
 char logFileName[] = "logs/nwncx_serverlist.txt";
@@ -29,13 +36,17 @@ int joingroup_called = 0;
 
 HANDLE threadlock_JoinGroup;
 HANDLE threadlock_FetchServers;
+HANDLE threadlock_dataStatus;
+HANDLE threadlock_clientClass;
+
 HANDLE thandle;
-int data_status = DATA_DOING_NOTHING;   // a righteous initialization.
+int data_status = DATA_DOING_NOTHING; 
 int roomGlobal = -1;
 
 void InitPlugin();
 void CreateMutexes();
 void InitThread();
+
 
 //////////////////////////////////////////////////////////////////////////
 PLUGINLINK *pluginLink = 0;
@@ -101,37 +112,49 @@ int FilterGameType(int groupID, int skywingCode) {
 void FetchServers(int nRoom) {
 
 	if(LOG_THREADS) {
-		fprintf(logFile, "Child thread acquiring FetchServers....");
-		fflush(logFile);
-	}
-	WaitForSingleObject(threadlock_FetchServers, INFINITE);
-	if(LOG_THREADS) {
-		fprintf(logFile, "ACQUIRED (C)\n");
 		fprintf(logFile, "Child thread acquiring JoinGroup....");
 		fflush(logFile);
 	}
+
 	WaitForSingleObject(threadlock_JoinGroup, INFINITE);
+
+	if(LOG_THREADS) {
+		fprintf(logFile, "ACQUIRED (C)\n");
+		fprintf(logFile, "Child thread acquiring FetchServers....");
+		fflush(logFile);
+	}
+
+	WaitForSingleObject(threadlock_FetchServers, INFINITE);
+
 	if(LOG_THREADS) {
 		fprintf(logFile, "ACQUIRED (C)\n");
 		fflush(logFile);
 	}
 
 	// This, thankfully, never happens.  If somehow it does, we really need to know about it.
+	if(USE_REDUNDANT_LOCKS)	WaitForSingleObject(threadlock_dataStatus, INFINITE);
 	if(data_status == DATA_READY) { 
-		fprintf(logFile, "* Serious mutex error in FetchServers().  Report in a post nwnx.org\n");
+		fprintf(logFile, "* Serious mutex error in FetchServers().  Report in a post at nwnx.org\n");
 		fflush(logFile);
 		ExitThread(0);
 		return;
 	}
 
 	data_status = DATA_FETCHING;
+	if(USE_REDUNDANT_LOCKS) ReleaseMutex(threadlock_dataStatus);
+
 	fprintf(logFile, "Class initialization & pulling rooms, but not adding them to the NWN client yet.\n");
 	fflush(logFile);
 	client = new NWNMSClient(logFile, g_pAppManager);
 
-
+	if(USE_REDUNDANT_LOCKS) WaitForSingleObject(threadlock_clientClass, INFINITE);
 	client->GetServersInRoom(nRoom);  
+	if(USE_REDUNDANT_LOCKS) ReleaseMutex(threadlock_clientClass);
+
+
+	if(USE_REDUNDANT_LOCKS) WaitForSingleObject(threadlock_dataStatus, INFINITE);
 	data_status = DATA_READY;
+	if(USE_REDUNDANT_LOCKS) ReleaseMutex(threadlock_dataStatus);
 
 	fprintf(logFile, "Rooms pulled, data is ready.\n");
 	fflush(logFile);
@@ -140,6 +163,7 @@ void FetchServers(int nRoom) {
 		fprintf(logFile, "Child thread releasing FetchServers....");
 		fflush(logFile);
 	}
+
 	ReleaseMutex(threadlock_FetchServers);
 	if(LOG_THREADS) {
 		fprintf(logFile, "RELEASED (C)\n");
@@ -157,30 +181,24 @@ void FetchServers(int nRoom) {
 	}
 
 
-	// ExitThread(0);
+	// Child thread dies here.
 }
 
 void Poll() {
 
+	if(USE_REDUNDANT_LOCKS) WaitForSingleObject(threadlock_dataStatus, INFINITE);
 	if(data_status == DATA_READY) {
 		fprintf(logFile, "Adding servers to Neverwinter Nights client\n");
+		fflush(logFile);
+		if(USE_REDUNDANT_LOCKS) WaitForSingleObject(threadlock_clientClass, INFINITE);
 		client->AddServers();
 		delete client;
+		if(USE_REDUNDANT_LOCKS) ReleaseMutex(threadlock_clientClass);
 		data_status = DATA_OLD;
 		fprintf(logFile, "Done!\n\n\n");
 		fflush(logFile);
 	}
-
-	if(LOG_THREADS) {
-		fprintf(logFile, "Main thread releasing FetchServers....");
-		fflush(logFile);
-	}
-	ReleaseMutex(threadlock_FetchServers);
-	if(LOG_THREADS) {
-		fprintf(logFile, "RELEASED (M)\n");
-		fflush(logFile);
-	}
-
+	if(USE_REDUNDANT_LOCKS) ReleaseMutex(threadlock_dataStatus);
 
 }
 
@@ -200,13 +218,17 @@ int __fastcall CGameSpyClient__JoinGroupRoom_Hook(void *pGameSpy, int edx, int n
 		fflush(logFile);
 	}
 
-	joingroup_called = 1;
 
 	roomGlobal = nRoom;
 
-	InitThread();
-	ResumeThread(thandle);
 
+	if(!joingroup_called) {
+		joingroup_called = 1;
+	}
+
+	InitThread();
+	
+	ResumeThread(thandle);
 	if(LOG_THREADS) {
 		fprintf(logFile, "Main thread releasing JoinGroup....");
 		fflush(logFile);
@@ -225,22 +247,45 @@ int __fastcall CGameSpyClient__JoinGroupRoom_Hook(void *pGameSpy, int edx, int n
 void (__fastcall *CConnectionLib__UpdateGameSpyClient)();
 void __fastcall CConnectionLib__UpdateGameSpyClient_Hook(CConnectionLib *pConnectionLib)
 {
-	// We are waiting because this thread also modifies data_status
+
+	CConnectionLib__UpdateGameSpyClient();
+
 	if(joingroup_called) {
 		if(LOG_THREADS) {
 			fprintf(logFile, "Main thread [POLL direction] acquiring FetchServers....");
 			fflush(logFile);
 		}
+		
 		WaitForSingleObject(threadlock_FetchServers, INFINITE);
+
 		if(LOG_THREADS) {
 			fprintf(logFile, "ACQUIRED (M)\n");
 			fflush(logFile);
 		}
+
+
 		Poll();		
+		
+		if(LOG_THREADS) {
+			fprintf(logFile, "Main thread releasing FetchServers....");
+			fflush(logFile);
+		}
+		
+		ReleaseMutex(threadlock_FetchServers);
+		
+		if(LOG_THREADS) {
+			fprintf(logFile, "RELEASED (M)\n");
+			fflush(logFile);
+		}		
+
 	}
+
+	// CConnectionLib__UpdateGameSpyClient();
+
+
 	
 
-	CConnectionLib__UpdateGameSpyClient();
+
 }
 
 void HookFunctions()
@@ -269,26 +314,28 @@ void InitPlugin()
 }
 
 void CreateMutexes() {
+	SECURITY_ATTRIBUTES sa;
+	SECURITY_DESCRIPTOR SD;
 
-	//threadlock_JoinGroup = CreateMutexA(&sa, FALSE, "JoinGroup");
-	//threadlock_FetchServers = CreateMutexA(&sa, FALSE, "FetchServers");
-	threadlock_JoinGroup = CreateMutexA(NULL, FALSE, "JoinGroup");
-	threadlock_FetchServers = CreateMutexA(NULL, FALSE, "FetchServers");
+	InitializeSecurityDescriptor(&SD, SECURITY_DESCRIPTOR_REVISION);
+	SetSecurityDescriptorDacl(&SD, TRUE, NULL, FALSE);
+    sa.nLength = sizeof (SECURITY_ATTRIBUTES);
+    sa.lpSecurityDescriptor = &SD;
+    sa.bInheritHandle = TRUE;
 
-	if(threadlock_JoinGroup == NULL) {
-		fprintf(logFile, "* Fatal - JoinGroup mutex was null.\n");
+
+	threadlock_JoinGroup = CreateMutexA(&sa, FALSE, "JoinGroup");
+	threadlock_FetchServers = CreateMutexA(&sa, FALSE, "FetchServers");
+	threadlock_dataStatus = CreateMutexA(&sa, FALSE, "ModifyDataStatus");
+	threadlock_clientClass = CreateMutexA(&sa, FALSE, "ClientClassAccess");
+
+	if(threadlock_JoinGroup == NULL || threadlock_FetchServers == NULL || 
+		threadlock_dataStatus == NULL || threadlock_clientClass == NULL) {
+		fprintf(logFile, "* Fatal - Mutexes were null.\n");
 		fflush(logFile);
 		ExitProcess(0);
 		return;
 	}
-
-	if(threadlock_FetchServers == NULL) {
-		fprintf(logFile, "* Fatal - FetchServers mutex was null.\n");
-		fflush(logFile);
-		ExitProcess(0);
-		return;
-	}
-
 
 
 }
