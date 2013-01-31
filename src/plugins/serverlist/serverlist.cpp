@@ -76,37 +76,6 @@ extern "C" __declspec(dllexport) int InitPlugin(PLUGINLINK *link)
 
 
 
-/*
-// This is if you are listing all servers and want to filter them by room yourself, you would use this.
-
-int FilterGameType(int groupID, int skywingCode) {
-
-	// skywingCode is named after Skywing, the guy who made it up.
-	// Also, these next two lines may need the skywing codes switched (12 & 13).
-	if(groupID == 274 && skywingCode == 12) return 0;   // either Action or Tech Support, going with Action
-	if(groupID == 370 && skywingCode == 13) return 0;   // eitehr Action or Tech Support, going with Tech
-
-
-
-	// I'm certain about these
-	if(groupID == 275 && skywingCode == 3) return 0;  // Roleplay
-	if(groupID == 276 && skywingCode == 4) return 0;  // Team
-	if(groupID == 277 && skywingCode == 7) return 0;  // Social
-	if(groupID == 278 && skywingCode == 9) return 0;  // PW Action
-	if(groupID == 279 && skywingCode == 8) return 0;  // Alternative
-	if(groupID == 363 && skywingCode == 1) return 0;  // Story
-	if(groupID == 364 && skywingCode == 2) return 0;  // Story Lite
-	if(groupID == 365 && skywingCode == 5) return 0;  // Melee
-	if(groupID == 366 && skywingCode == 6) return 0;  // Arena
-	if(groupID == 367 && skywingCode == 10) return 0; // PW Story
-	if(groupID == 368 && skywingCode == 11) return 0; // Solo
-
-
-	return 1;   // room mismatch, filter it.
-
-}
-*/
-
 
 
 void FetchServers(int nRoom) {
@@ -324,10 +293,10 @@ void CreateMutexes() {
     sa.bInheritHandle = TRUE;
 
 
-	threadlock_JoinGroup = CreateMutexA(&sa, FALSE, "JoinGroup");
-	threadlock_FetchServers = CreateMutexA(&sa, FALSE, "FetchServers");
-	threadlock_dataStatus = CreateMutexA(&sa, FALSE, "ModifyDataStatus");
-	threadlock_clientClass = CreateMutexA(&sa, FALSE, "ClientClassAccess");
+	threadlock_JoinGroup = CreateMutexA(&sa, FALSE, NULL);
+	threadlock_FetchServers = CreateMutexA(&sa, FALSE, NULL);
+	threadlock_dataStatus = CreateMutexA(&sa, FALSE, NULL );
+	threadlock_clientClass = CreateMutexA(&sa, FALSE, NULL );
 
 	if(threadlock_JoinGroup == NULL || threadlock_FetchServers == NULL || 
 		threadlock_dataStatus == NULL || threadlock_clientClass == NULL) {
@@ -341,18 +310,22 @@ void CreateMutexes() {
 }
 
 void InitThread() {
+	LPTHREAD_START_ROUTINE  start_address = (LPTHREAD_START_ROUTINE) FetchServers;
+	/*
 	SIZE_T stack_size = 0;
 	SECURITY_ATTRIBUTES sa;
 	SECURITY_DESCRIPTOR SD;
-	LPTHREAD_START_ROUTINE  start_address = (LPTHREAD_START_ROUTINE) FetchServers;
+
 
 	InitializeSecurityDescriptor(&SD, SECURITY_DESCRIPTOR_REVISION);
 	SetSecurityDescriptorDacl(&SD, TRUE, NULL, FALSE);
     sa.nLength = sizeof (SECURITY_ATTRIBUTES);
     sa.lpSecurityDescriptor = &SD;
     sa.bInheritHandle = TRUE;
+	*/
 
-	thandle = CreateThread(&sa, 0, start_address, (void *)roomGlobal, CREATE_SUSPENDED, NULL);
+
+	thandle = CreateThread(NULL, 0, start_address, (void *)roomGlobal, CREATE_SUSPENDED, NULL);
 	if(thandle == NULL) {
 		fprintf(logFile, "* Fatal - Thread creation failed.\n");
 		fflush(logFile);

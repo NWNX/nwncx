@@ -144,7 +144,7 @@ const char * NWNMSClient::GetErrorMessage(int res)
 
 
 	// The room list
-	// Action       nRoom=274   *(c->NWGameServer[i]->GameType) = ?????; guessing its 12
+	// Action       nRoom=274   *(c->NWGameServer[i]->GameType) = 13;
 	// Roleplay     nRoom=275   *(c->NWGameServer[i]->GameType) = 3;
 	// Team         nRoom=276   *(c->NWGameServer[i]->GameType) = 4;
 	// Social       nRoom=277   *(c->NWGameServer[i]->GameType) = 7;
@@ -156,12 +156,12 @@ const char * NWNMSClient::GetErrorMessage(int res)
 	// Arena        nRoom=366   *(c->NWGameServer[i]->GameType) = 6;
 	// PW Story     nRoom=367   *(c->NWGameServer[i]->GameType) = 10;
 	// Solo         nRoom=368   *(c->NWGameServer[i]->GameType) = 11;
-	// Tech Support nRoom=370   *(c->NWGameServer[i]->GameType) = ?????;  guessing its 13
+	// Tech Support nRoom=370   *(c->NWGameServer[i]->GameType) = 12;
 int NWNMSClient::RoomToSkywing(int room) {
 
 	switch(room) {
 	case 274:
-		return 12; break;
+		return 13; break;
 	case 275:
 		return 3; break;
 	case 276:
@@ -185,7 +185,7 @@ int NWNMSClient::RoomToSkywing(int room) {
 	case 368:
 		return 11; break;
 	case 370:
-		return 13; break;
+		return 12; break;
 	default:
 		return 3; break;  // just put it in Roleplay :P
 	}
