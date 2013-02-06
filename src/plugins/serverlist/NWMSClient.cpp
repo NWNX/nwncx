@@ -2,144 +2,136 @@
 #include <winsock2.h>
 #endif
 #pragma comment(lib, "Ws2_32.lib")
-
-
 #include <stdio.h>
 #include <string.h>
-
-// [addicted2rpg] This is useful for redirecting the client to a dummmy master server, although no function is 
-// performed as of present (that I know of), although the connect succeeds and has a similar effect as the 
-// disablems plugin.  Currently unused.
-#define NEW_MASTER "nwn1.mst.valhallalegends.com"
-
 
 #include "NWNMSClient.h"
 #include "soap/soapWSHttpBinding_USCOREINWNMasterServerAPIProxy.h"
 #include "soap/WSHttpBinding_USCOREINWNMasterServerAPI.nsmap"
 
-
-const char *endpoint = "http://api.mst.valhallalegends.com/NWNMasterServerAPI/NWNMasterServerAPI.svc/ASMX";
-
-
-
-
-
-NWNMSClient::NWNMSClient(FILE *logFile, CAppManager *app)
+NWNMSClient::NWNMSClient(FILE *logFile, ServerListCallback_t serverListCallback)
 {
 	this->logFile = logFile;
-	AppManager = app;
+	this->serverListCallback = serverListCallback;
 
-	listserver = NULL;
-	game = NULL;
-	servers = NULL;
-	srv_list = NULL;
-	srv_response = NULL;
-
+	InitializeCriticalSection(&cs);
 }
 
 NWNMSClient::~NWNMSClient() {
-	if(listserver != NULL) delete listserver;
-
-	if(srv_list!= NULL) {
-		if(srv_list->Product != NULL) {
-			free(srv_list->Product);
-		}
-		if(srv_list->GameType != NULL) {
-			free(srv_list->GameType);
-		}
-		delete srv_list;
-	}
-
-	if(srv_response != NULL) delete srv_response;
-
-	// servers is actually a pointer to srv_response, so nothing to free.
-
-
 
 }
 
-// should be called from child thread
-void NWNMSClient::GetServersInRoom(int nRoom)
+void NWNMSClient::RequestServerList(int roomId)
 {
-	int res, numServers;
+	fprintf(logFile, "Creating thread...");
+	fflush(logFile);
 
-	this->room = nRoom;
+	this->currentRoom = roomId;
+	RequestThreadParams *params = new RequestThreadParams;
+	params->client = this;
+	params->roomId = RoomToSkywing(roomId);
+	QueueUserWorkItem((LPTHREAD_START_ROUTINE) NWNMSClient::RequestThread, params, NULL);
+}
 
-	listserver = new NWNMasterServerAPIProxy();
-	listserver->soap_endpoint = endpoint;
+void NWNMSClient::Update()
+{
+	if(HasResults())
+	{
+		fprintf(logFile, "We have results!!!");
+		fflush(logFile);
+		ServerListResult result = PopResult();
+		if (result.roomId == RoomToSkywing(this->currentRoom))
+			this->serverListCallback(result);
+		//delete result.servers;
+		delete result.api;
+	}
+}
 
-	srv_list = new GameLookup(); // new GetOnlineServerList();
+void NWNMSClient::PushResult(ServerListResult result)
+{
+	EnterCriticalSection(&cs);
+	this->resultQueue.push(result);
+	LeaveCriticalSection(&cs);
+}
 
+ServerListResult NWNMSClient::PopResult()
+{
+	ServerListResult result;
 
-	srv_list->Product = (char *)malloc(sizeof(char) * 5);  // NWN1 plus a null character.
-	strcpy_s(srv_list->Product, sizeof(char) * 5,  "NWN1");	
-	srv_list->GameType = (unsigned int *)malloc(sizeof(int));
-	*(srv_list->GameType) = RoomToSkywing(nRoom);
+	EnterCriticalSection(&cs);
+	result = this->resultQueue.front();
+	this->resultQueue.pop();
+	LeaveCriticalSection(&cs);
+
+	return result;
+}
+
+bool NWNMSClient::HasResults()
+{
+	bool result;
+	EnterCriticalSection(&cs);
+	result = !this->resultQueue.empty();
+	LeaveCriticalSection(&cs);
+	return result;
+}
+
+DWORD WINAPI NWNMSClient::RequestThread(void *param)
+{
+	NWNMSClient *client;
+	int roomId;
+	FILE *logFile;
+
+	//Get the params from struct and delete it
+	RequestThreadParams *params = (RequestThreadParams *)param;
+	if (!params)
+		return NULL;
+
+	client  = params->client;
+	roomId  = params->roomId;
+	logFile = client->logFile;
+	delete params;
+
+	//Query the master server
+	NWNMasterServerAPIProxy *api = new NWNMasterServerAPIProxy();
+	GameLookup srv_request;
+	GameLookupResponse srv_response;
+
+	api->soap_endpoint = API_ENDPOINT;
+	//TODO: cleanup
+	srv_request.Product = (char *)malloc(sizeof(char) * 5);  // NWN1 plus a null character.
+	strcpy_s(srv_request.Product, sizeof(char) * 5,  "NWN1");	
+	srv_request.GameType = (unsigned int *)malloc(sizeof(int));
+	*(srv_request.GameType) = roomId;
 	
-	srv_response = new GameLookupResponse(); //new GetOnlineServerListResponse();
-	
-	// res = listserver->GetOnlineServerList(srv_list, srv_response);
-	res = listserver->LookupServerByGameType(srv_list, srv_response);
+	int res = api->LookupServerByGameType(&srv_request, &srv_response);
 	if(res != SOAP_OK) {
 		//MessageBoxA(NULL, GetErrorMessage(res), "Error", MB_TASKMODAL | MB_TOPMOST | MB_ICONERROR | MB_OK);
-		fprintf(logFile, GetErrorMessage(res));
-		free(srv_list->Product);
-		free(srv_list->GameType);
-		return;
+		//fprintf(logFile, GetErrorMessage(res));
+		free(srv_request.Product);
+		free(srv_request.GameType);
+		return NULL;
 	}
 	
-	
-	servers = srv_response->LookupServerByGameTypeResult; // srv_response->GetOnlineServerListResult;
+	ArrayOfNWGameServer *servers = srv_response.LookupServerByGameTypeResult; // srv_response->GetOnlineServerListResult;
 	if(servers == NULL) {
 		//MessageBoxA(NULL, "This should never happen; The Gamelist is NULL - (no results, maybe?)", "Error", MB_TASKMODAL | MB_TOPMOST | MB_ICONERROR | MB_OK);		
-		fprintf(logFile, "This should never happen; The Gamelist is NULL - (no results, maybe?)");
-		free(srv_list->Product);
-		free(srv_list->GameType);
-		return;
+		//fprintf(logFile, "This should never happen; The Gamelist is NULL - (no results, maybe?)");
+		free(srv_request.Product);
+		free(srv_request.GameType);
+		return NULL;
 	}
 
-	
-	numServers = servers->__sizeNWGameServer;
-//	fprintf(logFile, "Got servers: %d\n", numServers);
-//	fflush(logFile);
+	//Hooray!!
+	ServerListResult result;
+	result.roomId = roomId;
+	result.api = api;
+	result.servers = servers;
+	client->PushResult(result);
 
-	free(srv_list->Product);
-	free(srv_list->GameType);
+	free(srv_request.Product);
+	free(srv_request.GameType);
 
-}
-
-const char * NWNMSClient::GetErrorMessage(int res)
-{
-
-	if(soap_xml_error_check(res)) {
-		return "Server Listing Failed.  It was an XML issue.\n";
-	}
-	else if(soap_soap_error_check(res)) {
-		"Server Listing Failed.  SOAP itself had some kind of problem.\n";
-	}
-	else if(soap_tcp_error_check(res)) {
-		"Server Listing Failed.  There was a TCP problem.\n";
-	}
-	else if(soap_ssl_error_check(res)) { 
-		"Server Listing Failed.  There was a SSL problem.\n";
-	}
-	else if(soap_zlib_error_check(res)) { 
-		"Server Listing Failed.  There was a ZLIB error!\n";
-	}
-	else if(soap_http_error_check(res)) {
-		if(res == 415) {
-			"Server Listing Failed.  Got back HTTP/Unsupported Media.  SOAP XML is probably for old bindings.\n";
-		} else {
-			"Server Listing Failed.  It was an HTTP error!\n";
-		}
-	}
-	else {
-		return "Server Listing Failed.  We have no idea why.  SOAP hates you.\n";
-		
-	}
-
-	return "Undiagnosed error.\n";
-
+	return NULL;
 }
 
 
@@ -192,74 +184,35 @@ int NWNMSClient::RoomToSkywing(int room) {
 
 }
 
+const char * NWNMSClient::GetErrorMessage(int res)
+{
 
-
-// Now called by the main thread....
-void NWNMSClient::AddServers() {
-	int i, portnumber;
-	char *pvpfull = "FULL";
-	char *pvpparty = "PARTY";
-	char *pvpnone = "NONE";
-	char *str_ptr;
-	char buildstring[10];
-	char *IP_ptr, *port_ptr;
-
-	// The original function has a "Clear" routine that seems to be run after it.  I want this to run 
-	// after that routine, so that is what the wait is about.  It works too.... after a fashion.
-	// Sleep(500);
-
-
-	this->AppManager->ClientExoApp->Internal->m_pConnectionLib->ClearServers();
-
-	for(i=0; i < servers->__sizeNWGameServer;i++) {
-		if(*(servers->NWGameServer[i]->Online) != 1) continue;
-
-		IP_ptr = strtok(servers->NWGameServer[i]->ServerAddress, ":");
-		port_ptr = IP_ptr + strlen(IP_ptr) + 1;   // I never really trusted strtok(NULL) anyway :)
-
-		if(*(servers->NWGameServer[i]->PVPLevel) == 0) {
-			str_ptr = pvpnone;
+	if(soap_xml_error_check(res)) {
+		return "Server Listing Failed.  It was an XML issue.\n";
+	}
+	else if(soap_soap_error_check(res)) {
+		"Server Listing Failed.  SOAP itself had some kind of problem.\n";
+	}
+	else if(soap_tcp_error_check(res)) {
+		"Server Listing Failed.  There was a TCP problem.\n";
+	}
+	else if(soap_ssl_error_check(res)) { 
+		"Server Listing Failed.  There was a SSL problem.\n";
+	}
+	else if(soap_zlib_error_check(res)) { 
+		"Server Listing Failed.  There was a ZLIB error!\n";
+	}
+	else if(soap_http_error_check(res)) {
+		if(res == 415) {
+			"Server Listing Failed.  Got back HTTP/Unsupported Media.  SOAP XML is probably for old bindings.\n";
+		} else {
+			"Server Listing Failed.  It was an HTTP error!\n";
 		}
-		else if(*(servers->NWGameServer[i]->PVPLevel) == 1) {
-			str_ptr = pvpparty;
-		}
-		else {
-			str_ptr = pvpfull;
-		}
-		itoa(*(servers->NWGameServer[i]->BuildNumber), buildstring, 10);
-		portnumber = atoi(port_ptr);
-//		fprintf(logFile, "Online: %d Server Address: %s  Port Number: %s Room: %d\n", *(servers->NWGameServer[i]->Online), IP_ptr, port_ptr, *(servers->NWGameServer[i]->GameType));		
-
-		this->AppManager->ClientExoApp->Internal->m_pConnectionLib->AddServer(
-			(void *)i, 
-			servers->NWGameServer[i]->ServerName, 
-			servers->NWGameServer[i]->ModuleName,
-			*(servers->NWGameServer[i]->ActivePlayerCount),
-			*(servers->NWGameServer[i]->MaximumPlayerCount),
-			*(servers->NWGameServer[i]->MinimumLevel),
-			*(servers->NWGameServer[i]->MaximumLevel),
-			str_ptr,
-			75, // making up ping initially...
-			*(servers->NWGameServer[i]->PrivateServer), 
-			IP_ptr,
-			portnumber, 
-			*(servers->NWGameServer[i]->OnePartyOnly),
-			*(servers->NWGameServer[i]->PlayerPause),
-			buildstring, 
-			servers->NWGameServer[i]->ServerDescription, 
-			this->room, // I think this is groupID
-			*(servers->NWGameServer[i]->ELCEnforced),
-			*(servers->NWGameServer[i]->ILREnforced),
-			*(servers->NWGameServer[i]->LocalVault),
-			*(servers->NWGameServer[i]->ExpansionsMask),
-			false);
-
+	}
+	else {
+		return "Server Listing Failed.  We have no idea why.  SOAP hates you.\n";
+		
 	}
 
-
-	this->AppManager->ClientExoApp->Internal->m_pConnectionLib->UpdateConnectionPhase(9, "");
-
-	fprintf(logFile, "%d Servers added\n", i);
-	fflush(logFile);
-
+	return "Undiagnosed error.\n";
 }

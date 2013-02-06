@@ -14,39 +14,11 @@
 #include <nwnapi\custom\nwn_globals.h>
 #include <nwnapi\custom\nwn_globals.cpp>
 
-#define DATA_DOING_NOTHING 0
-#define DATA_OLD 1
-#define DATA_FETCHING 2
-#define DATA_READY 3
-
-// The compiler optimizer will remove these when set to 0, so don't worry about all inefficient lines that call them.
-// LOG_THREADS will log thread behavior - very spammy but useful.
-// USE_REDUNDANT_LOCKS are data-access locks of data that is used mutually by both threads, but the normal
-// threads in place should prevent them from being accessed at once.  If turning these on and then off 
-// makes a difference in the way things behave (it shouldn't), then that will alert you to a bug.  This can be 
-// helpful to finding "the ghost in the machine" that accompanies multithreading issues -- addicted.  
-#define LOG_THREADS 0
-#define USE_REDUNDANT_LOCKS 0
-
 FILE *logFile;
 char logFileName[] = "logs/nwncx_serverlist.txt";
 NWNMSClient *client;
 
-int joingroup_called = 0;
-
-HANDLE threadlock_JoinGroup;
-HANDLE threadlock_FetchServers;
-HANDLE threadlock_dataStatus;
-HANDLE threadlock_clientClass;
-
-HANDLE thandle;
-int data_status = DATA_DOING_NOTHING; 
-int roomGlobal = -1;
-
 void InitPlugin();
-void CreateMutexes();
-void InitThread();
-
 
 //////////////////////////////////////////////////////////////////////////
 PLUGINLINK *pluginLink = 0;
@@ -58,7 +30,7 @@ PLUGININFO pluginInfo={
 	"virusman & addicted2rpg",
 	"virusman@virusman.ru & duckbreath@yahoo.com",
 	"© 2013 virusman & addicted2rpg",
-	"http://www.virusman.ru/",
+	"http://www.nwnx.org/",
 	0		//not transient
 };
 
@@ -74,140 +46,84 @@ extern "C" __declspec(dllexport) int InitPlugin(PLUGINLINK *link)
 	return 0;
 }
 
+void ServerListCallback(ServerListResult result)
+{
+	ArrayOfNWGameServer *servers = result.servers;
+	int roomId = result.roomId;
 
-
-
-
-void FetchServers(int nRoom) {
-
-	if(LOG_THREADS) {
-		fprintf(logFile, "Child thread acquiring JoinGroup....");
-		fflush(logFile);
-	}
-
-	WaitForSingleObject(threadlock_JoinGroup, INFINITE);
-
-	if(LOG_THREADS) {
-		fprintf(logFile, "ACQUIRED (C)\n");
-		fprintf(logFile, "Child thread acquiring FetchServers....");
-		fflush(logFile);
-	}
-
-	WaitForSingleObject(threadlock_FetchServers, INFINITE);
-
-	if(LOG_THREADS) {
-		fprintf(logFile, "ACQUIRED (C)\n");
-		fflush(logFile);
-	}
-
-	// This, thankfully, never happens.  If somehow it does, we really need to know about it.
-	if(USE_REDUNDANT_LOCKS)	WaitForSingleObject(threadlock_dataStatus, INFINITE);
-	if(data_status == DATA_READY) { 
-		fprintf(logFile, "* Serious mutex error in FetchServers().  Report in a post at nwnx.org\n");
-		fflush(logFile);
-		ExitThread(0);
-		return;
-	}
-
-	data_status = DATA_FETCHING;
-	if(USE_REDUNDANT_LOCKS) ReleaseMutex(threadlock_dataStatus);
-
-	fprintf(logFile, "Class initialization & pulling rooms, but not adding them to the NWN client yet.\n");
-	fflush(logFile);
-	client = new NWNMSClient(logFile, g_pAppManager);
-
-	if(USE_REDUNDANT_LOCKS) WaitForSingleObject(threadlock_clientClass, INFINITE);
-	client->GetServersInRoom(nRoom);  
-	if(USE_REDUNDANT_LOCKS) ReleaseMutex(threadlock_clientClass);
-
-
-	if(USE_REDUNDANT_LOCKS) WaitForSingleObject(threadlock_dataStatus, INFINITE);
-	data_status = DATA_READY;
-	if(USE_REDUNDANT_LOCKS) ReleaseMutex(threadlock_dataStatus);
-
-	fprintf(logFile, "Rooms pulled, data is ready.\n");
+	fprintf(logFile, "Callback called!\n");
 	fflush(logFile);
 
-	if(LOG_THREADS) {
-		fprintf(logFile, "Child thread releasing FetchServers....");
-		fflush(logFile);
+	int i, portnumber;
+	char *pvpfull = "FULL";
+	char *pvpparty = "PARTY";
+	char *pvpnone = "NONE";
+	char *str_ptr;
+	char buildstring[10];
+	char *IP_ptr, *port_ptr;
+
+	// The original function has a "Clear" routine that seems to be run after it.  I want this to run 
+	// after that routine, so that is what the wait is about.  It works too.... after a fashion.
+	// Sleep(500);
+
+	g_pAppManager->ClientExoApp->Internal->m_pConnectionLib->ClearServers();
+
+	for(i=0; i < servers->__sizeNWGameServer;i++) {
+		if(*(servers->NWGameServer[i]->Online) != 1) continue;
+
+		IP_ptr = strtok(servers->NWGameServer[i]->ServerAddress, ":");
+		port_ptr = IP_ptr + strlen(IP_ptr) + 1;   // I never really trusted strtok(NULL) anyway :)
+
+		if(*(servers->NWGameServer[i]->PVPLevel) == 0) {
+			str_ptr = pvpnone;
+		}
+		else if(*(servers->NWGameServer[i]->PVPLevel) == 1) {
+			str_ptr = pvpparty;
+		}
+		else {
+			str_ptr = pvpfull;
+		}
+		itoa(*(servers->NWGameServer[i]->BuildNumber), buildstring, 10);
+		portnumber = atoi(port_ptr);
+//		fprintf(logFile, "Online: %d Server Address: %s  Port Number: %s Room: %d\n", *(servers->NWGameServer[i]->Online), IP_ptr, port_ptr, *(servers->NWGameServer[i]->GameType));		
+
+		g_pAppManager->ClientExoApp->Internal->m_pConnectionLib->AddServer(
+			(void *)i, 
+			servers->NWGameServer[i]->ServerName, 
+			servers->NWGameServer[i]->ModuleName,
+			*(servers->NWGameServer[i]->ActivePlayerCount),
+			*(servers->NWGameServer[i]->MaximumPlayerCount),
+			*(servers->NWGameServer[i]->MinimumLevel),
+			*(servers->NWGameServer[i]->MaximumLevel),
+			str_ptr,
+			75, // making up ping initially...
+			*(servers->NWGameServer[i]->PrivateServer), 
+			IP_ptr,
+			portnumber, 
+			*(servers->NWGameServer[i]->OnePartyOnly),
+			*(servers->NWGameServer[i]->PlayerPause),
+			buildstring, 
+			servers->NWGameServer[i]->ServerDescription, 
+			roomId, // I think this is groupID
+			*(servers->NWGameServer[i]->ELCEnforced),
+			*(servers->NWGameServer[i]->ILREnforced),
+			*(servers->NWGameServer[i]->LocalVault),
+			*(servers->NWGameServer[i]->ExpansionsMask),
+			false);
+
 	}
 
-	ReleaseMutex(threadlock_FetchServers);
-	if(LOG_THREADS) {
-		fprintf(logFile, "RELEASED (C)\n");
-		fflush(logFile);
-	}
 
-	if(LOG_THREADS) {
-		fprintf(logFile, "Child thread releasing JoinGroup....");
-		fflush(logFile);
-	}
-	ReleaseMutex(threadlock_JoinGroup);
-	if(LOG_THREADS) {
-		fprintf(logFile, "RELEASED (C)\n");
-		fflush(logFile);
-	}
+	g_pAppManager->ClientExoApp->Internal->m_pConnectionLib->UpdateConnectionPhase(9, "");
 
-
-	// Child thread dies here.
+	fprintf(logFile, "%d Servers added\n", i);
+	fflush(logFile);
 }
-
-void Poll() {
-
-	if(USE_REDUNDANT_LOCKS) WaitForSingleObject(threadlock_dataStatus, INFINITE);
-	if(data_status == DATA_READY) {
-		fprintf(logFile, "Adding servers to Neverwinter Nights client\n");
-		fflush(logFile);
-		if(USE_REDUNDANT_LOCKS) WaitForSingleObject(threadlock_clientClass, INFINITE);
-		client->AddServers();
-		delete client;
-		if(USE_REDUNDANT_LOCKS) ReleaseMutex(threadlock_clientClass);
-		data_status = DATA_OLD;
-		fprintf(logFile, "Done!\n\n\n");
-		fflush(logFile);
-	}
-	if(USE_REDUNDANT_LOCKS) ReleaseMutex(threadlock_dataStatus);
-
-}
-
 
 int (__fastcall *CGameSpyClient__JoinGroupRoom)(void *pGameSpy, int edx, int nRoom);
 int __fastcall CGameSpyClient__JoinGroupRoom_Hook(void *pGameSpy, int edx, int nRoom)
 {		
-
-
-	if(LOG_THREADS) {
-		fprintf(logFile, "Main thread acquiring JoinGroup....");
-		fflush(logFile);
-	}
-	WaitForSingleObject(threadlock_JoinGroup, INFINITE);
-	if(LOG_THREADS) {
-		fprintf(logFile, "ACQUIRED (M)\n");
-		fflush(logFile);
-	}
-
-
-	roomGlobal = nRoom;
-
-
-	if(!joingroup_called) {
-		joingroup_called = 1;
-	}
-
-	InitThread();
-	
-	ResumeThread(thandle);
-	if(LOG_THREADS) {
-		fprintf(logFile, "Main thread releasing JoinGroup....");
-		fflush(logFile);
-	}
-	ReleaseMutex(threadlock_JoinGroup);
-	if(LOG_THREADS) {
-		fprintf(logFile, "RELEASED (M)\n");
-		fflush(logFile);
-	}
-
+	client->RequestServerList(nRoom);
 
 	//return 	CGameSpyClient__JoinGroupRoom(pGameSpy, edx, nRoom);
 	return true;
@@ -216,45 +132,8 @@ int __fastcall CGameSpyClient__JoinGroupRoom_Hook(void *pGameSpy, int edx, int n
 void (__fastcall *CConnectionLib__UpdateGameSpyClient)();
 void __fastcall CConnectionLib__UpdateGameSpyClient_Hook(CConnectionLib *pConnectionLib)
 {
-
 	CConnectionLib__UpdateGameSpyClient();
-
-	if(joingroup_called) {
-		if(LOG_THREADS) {
-			fprintf(logFile, "Main thread [POLL direction] acquiring FetchServers....");
-			fflush(logFile);
-		}
-		
-		WaitForSingleObject(threadlock_FetchServers, INFINITE);
-
-		if(LOG_THREADS) {
-			fprintf(logFile, "ACQUIRED (M)\n");
-			fflush(logFile);
-		}
-
-
-		Poll();		
-		
-		if(LOG_THREADS) {
-			fprintf(logFile, "Main thread releasing FetchServers....");
-			fflush(logFile);
-		}
-		
-		ReleaseMutex(threadlock_FetchServers);
-		
-		if(LOG_THREADS) {
-			fprintf(logFile, "RELEASED (M)\n");
-			fflush(logFile);
-		}		
-
-	}
-
-	// CConnectionLib__UpdateGameSpyClient();
-
-
-	
-
-
+	client->Update();
 }
 
 void HookFunctions()
@@ -273,67 +152,13 @@ void HookFunctions()
 void InitPlugin()
 {
 	logFile = fopen(logFileName, "w");
-	fprintf(logFile, "NWCX Serverlist plugin 1.0 (PRE-RELEASE)\n");
+	fprintf(logFile, "NWCX Serverlist plugin 1.0\n");
 	fprintf(logFile, "(c) 2013 by virusman & addicted2rpg\n");
 	fflush(logFile);
 	if(pluginLink){
 	}
 	HookFunctions();
-	CreateMutexes();
-}
-
-void CreateMutexes() {
-	SECURITY_ATTRIBUTES sa;
-	SECURITY_DESCRIPTOR SD;
-
-	InitializeSecurityDescriptor(&SD, SECURITY_DESCRIPTOR_REVISION);
-	SetSecurityDescriptorDacl(&SD, TRUE, NULL, FALSE);
-    sa.nLength = sizeof (SECURITY_ATTRIBUTES);
-    sa.lpSecurityDescriptor = &SD;
-    sa.bInheritHandle = TRUE;
-
-
-	threadlock_JoinGroup = CreateMutexA(&sa, FALSE, NULL);
-	threadlock_FetchServers = CreateMutexA(&sa, FALSE, NULL);
-	threadlock_dataStatus = CreateMutexA(&sa, FALSE, NULL );
-	threadlock_clientClass = CreateMutexA(&sa, FALSE, NULL );
-
-	if(threadlock_JoinGroup == NULL || threadlock_FetchServers == NULL || 
-		threadlock_dataStatus == NULL || threadlock_clientClass == NULL) {
-		fprintf(logFile, "* Fatal - Mutexes were null.\n");
-		fflush(logFile);
-		ExitProcess(0);
-		return;
-	}
-
-
-}
-
-void InitThread() {
-	LPTHREAD_START_ROUTINE  start_address = (LPTHREAD_START_ROUTINE) FetchServers;
-	/*
-	SIZE_T stack_size = 0;
-	SECURITY_ATTRIBUTES sa;
-	SECURITY_DESCRIPTOR SD;
-
-
-	InitializeSecurityDescriptor(&SD, SECURITY_DESCRIPTOR_REVISION);
-	SetSecurityDescriptorDacl(&SD, TRUE, NULL, FALSE);
-    sa.nLength = sizeof (SECURITY_ATTRIBUTES);
-    sa.lpSecurityDescriptor = &SD;
-    sa.bInheritHandle = TRUE;
-	*/
-
-
-	thandle = CreateThread(NULL, 0, start_address, (void *)roomGlobal, CREATE_SUSPENDED, NULL);
-	if(thandle == NULL) {
-		fprintf(logFile, "* Fatal - Thread creation failed.\n");
-		fflush(logFile);
-		ExitProcess(0);
-		return;
-	}
-
-
+	client = new NWNMSClient(logFile, ServerListCallback);
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
@@ -345,10 +170,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 	{
 		fprintf(logFile, "* Plugin exit.  Cleaning up....\n");
 		fflush(logFile);
-		CloseHandle(threadlock_JoinGroup);
-		CloseHandle(threadlock_FetchServers);
-		CloseHandle(thandle);
-		//delete plugin;
 	}
 	return TRUE;
 }
