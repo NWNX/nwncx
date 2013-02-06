@@ -45,11 +45,6 @@ public:
 	NWNMSClient(FILE *logFile, ServerListCallback_t serverListCallback);
 	~NWNMSClient();
 
-	// Functions
-	void AddServers();
-	void GetServersInRoom(int nRoom);
-	const char * GetErrorMessage(int res);
-
 	void                  RequestServerList(int roomId);
 	void                  Update();
 	void                  PushResult(ServerListResult result);
@@ -60,6 +55,7 @@ public:
 
 private:
 	static int            RoomToSkywing(int room);
+	const char *          GetErrorMessage(int res);
 
 	FILE *                             logFile;
 	int                                currentRoom;

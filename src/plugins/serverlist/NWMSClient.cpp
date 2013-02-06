@@ -96,17 +96,15 @@ DWORD WINAPI NWNMSClient::RequestThread(void *param)
 
 	api->soap_endpoint = API_ENDPOINT;
 	//TODO: cleanup
-	srv_request.Product = (char *)malloc(sizeof(char) * 5);  // NWN1 plus a null character.
+	srv_request.Product = (char *)soap_malloc(api, sizeof(char) * 5);  // NWN1 plus a null character.
 	strcpy_s(srv_request.Product, sizeof(char) * 5,  "NWN1");	
-	srv_request.GameType = (unsigned int *)malloc(sizeof(int));
+	srv_request.GameType = (unsigned int *)soap_malloc(api, sizeof(int));
 	*(srv_request.GameType) = RoomToSkywing(roomId);
 	
 	int res = api->LookupServerByGameType(&srv_request, &srv_response);
 	if(res != SOAP_OK) {
 		//MessageBoxA(NULL, GetErrorMessage(res), "Error", MB_TASKMODAL | MB_TOPMOST | MB_ICONERROR | MB_OK);
 		//fprintf(logFile, GetErrorMessage(res));
-		free(srv_request.Product);
-		free(srv_request.GameType);
 		return NULL;
 	}
 	
@@ -114,8 +112,6 @@ DWORD WINAPI NWNMSClient::RequestThread(void *param)
 	if(servers == NULL) {
 		//MessageBoxA(NULL, "This should never happen; The Gamelist is NULL - (no results, maybe?)", "Error", MB_TASKMODAL | MB_TOPMOST | MB_ICONERROR | MB_OK);		
 		//fprintf(logFile, "This should never happen; The Gamelist is NULL - (no results, maybe?)");
-		free(srv_request.Product);
-		free(srv_request.GameType);
 		return NULL;
 	}
 
@@ -125,9 +121,6 @@ DWORD WINAPI NWNMSClient::RequestThread(void *param)
 	result.api = api;
 	result.servers = servers;
 	client->PushResult(result);
-
-	free(srv_request.Product);
-	free(srv_request.GameType);
 
 	return NULL;
 }
