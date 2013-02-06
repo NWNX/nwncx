@@ -105,6 +105,7 @@ DWORD WINAPI NWNMSClient::RequestThread(void *param)
 	if(res != SOAP_OK) {
 		//MessageBoxA(NULL, GetErrorMessage(res), "Error", MB_TASKMODAL | MB_TOPMOST | MB_ICONERROR | MB_OK);
 		//fprintf(logFile, GetErrorMessage(res));
+		delete api;
 		return NULL;
 	}
 	
@@ -112,6 +113,7 @@ DWORD WINAPI NWNMSClient::RequestThread(void *param)
 	if(servers == NULL) {
 		//MessageBoxA(NULL, "This should never happen; The Gamelist is NULL - (no results, maybe?)", "Error", MB_TASKMODAL | MB_TOPMOST | MB_ICONERROR | MB_OK);		
 		//fprintf(logFile, "This should never happen; The Gamelist is NULL - (no results, maybe?)");
+		delete api;
 		return NULL;
 	}
 
