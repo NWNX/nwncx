@@ -23,13 +23,13 @@ NWNMSClient::~NWNMSClient() {
 
 void NWNMSClient::RequestServerList(int roomId)
 {
-	fprintf(logFile, "Creating thread...");
+	fprintf(logFile, "Creating thread...\n");
 	fflush(logFile);
 
 	this->currentRoom = roomId;
 	RequestThreadParams *params = new RequestThreadParams;
 	params->client = this;
-	params->roomId = RoomToSkywing(roomId);
+	params->roomId = roomId;
 	QueueUserWorkItem((LPTHREAD_START_ROUTINE) NWNMSClient::RequestThread, params, NULL);
 }
 
@@ -37,10 +37,8 @@ void NWNMSClient::Update()
 {
 	if(HasResults())
 	{
-		fprintf(logFile, "We have results!!!");
-		fflush(logFile);
 		ServerListResult result = PopResult();
-		if (result.roomId == RoomToSkywing(this->currentRoom))
+		if (result.roomId == this->currentRoom)
 			this->serverListCallback(result);
 		//delete result.servers;
 		delete result.api;
@@ -101,7 +99,7 @@ DWORD WINAPI NWNMSClient::RequestThread(void *param)
 	srv_request.Product = (char *)malloc(sizeof(char) * 5);  // NWN1 plus a null character.
 	strcpy_s(srv_request.Product, sizeof(char) * 5,  "NWN1");	
 	srv_request.GameType = (unsigned int *)malloc(sizeof(int));
-	*(srv_request.GameType) = roomId;
+	*(srv_request.GameType) = RoomToSkywing(roomId);
 	
 	int res = api->LookupServerByGameType(&srv_request, &srv_response);
 	if(res != SOAP_OK) {

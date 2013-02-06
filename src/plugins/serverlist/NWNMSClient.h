@@ -59,7 +59,7 @@ public:
 	static DWORD WINAPI   RequestThread(void *param);
 
 private:
-	int RoomToSkywing(int room);
+	static int            RoomToSkywing(int room);
 
 	FILE *                             logFile;
 	int                                currentRoom;
