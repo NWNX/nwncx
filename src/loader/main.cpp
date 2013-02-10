@@ -36,8 +36,14 @@ int WINAPI WinMain(
 	ZeroMemory(&pi, sizeof(pi));
 	si.cb = sizeof(si);
 
-	//MessageBox(NULL, lpCmdLine, "Cmd Line", MB_OK);
+	int size = strlen(lpCmdLine) + strlen("nwmain.exe") + 2;
+	char *cmdline = new char[size];
+	sprintf_s(cmdline, size, "%s %s", "nwmain.exe", lpCmdLine);
 
-	DetourCreateProcessWithDll("nwmain.exe", lpCmdLine, NULL, NULL, TRUE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi, "NWNCX.dll", NULL);
+	//MessageBox(NULL, cmdline, "Cmd Line", MB_OK);
+
+	DetourCreateProcessWithDll(NULL, cmdline, NULL, NULL, TRUE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi, "NWNCX.dll", NULL);
+
+	delete cmdline;
 	return 0;
 }
