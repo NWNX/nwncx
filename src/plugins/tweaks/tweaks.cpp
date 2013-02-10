@@ -27,14 +27,12 @@ void EnableWrite (unsigned long location)
 
 void PatchImage()
 {
-	/*char *pPatch = (char *) 0x004D4AF7;
+	char *pPatch = (char *) 0x00589A15;
 	EnableWrite((DWORD) pPatch);
 	fprintf(logFile, "Patching: was %x\n", *(unsigned int *)pPatch);
-	pPatch[0] = 0x84;
-	pPatch[1] = 0xF2;
-	pPatch[2] = 0x06;
+	pPatch[0] = 0x07;
 	fprintf(logFile, "Patching: now %x\n", *(unsigned int *)pPatch);
-	fflush(logFile);*/
+	fflush(logFile);
 }
 
 // ################################## WEAPON VFX ##################################
@@ -274,8 +272,8 @@ void InitPlugin()
 {
 	//DebugBreak();
 	logFile = fopen(logFileName, "w");
-	fprintf(logFile, "NWN Client Extender - Tweaks plugin v.0.2.5\n");
-	fprintf(logFile, "(c) 2011-2012 by virusman\n");
+	fprintf(logFile, "NWN Client Extender - Tweaks plugin v.0.2.7\n");
+	fprintf(logFile, "(c) 2011-2013 by virusman\n");
 	fflush(logFile);
 	PatchImage();
 	HookFunctions();
