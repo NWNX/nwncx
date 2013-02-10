@@ -146,7 +146,7 @@ int NWNMSClient::RoomToSkywing(int room) {
 
 	switch(room) {
 	case 274:
-		return 13; break;
+		return 0; break;
 	case 275:
 		return 3; break;
 	case 276:

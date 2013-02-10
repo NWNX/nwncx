@@ -25,7 +25,7 @@ PLUGINLINK *pluginLink = 0;
 PLUGININFO pluginInfo={
 	sizeof(PLUGININFO),
 	"NWNCX Serverlist",
-	PLUGIN_MAKE_VERSION(1,0,0,0),
+	PLUGIN_MAKE_VERSION(1,0,1,0),
 	"",
 	"virusman & addicted2rpg",
 	"virusman@virusman.ru & duckbreath@yahoo.com",
@@ -88,7 +88,7 @@ void ServerListCallback(ServerListResult result)
 //		fprintf(logFile, "Online: %d Server Address: %s  Port Number: %s Room: %d\n", *(servers->NWGameServer[i]->Online), IP_ptr, port_ptr, *(servers->NWGameServer[i]->GameType));		
 
 		g_pAppManager->ClientExoApp->Internal->m_pConnectionLib->AddServer(
-			(void *)i, 
+			(void *)(i+1), 
 			servers->NWGameServer[i]->ServerName, 
 			servers->NWGameServer[i]->ModuleName,
 			*(servers->NWGameServer[i]->ActivePlayerCount),
@@ -152,7 +152,7 @@ void HookFunctions()
 void InitPlugin()
 {
 	logFile = fopen(logFileName, "w");
-	fprintf(logFile, "NWCX Serverlist plugin 1.0\n");
+	fprintf(logFile, "NWCX Serverlist plugin 1.0.1\n");
 	fprintf(logFile, "(c) 2013 by virusman & addicted2rpg\n");
 	fflush(logFile);
 	if(pluginLink){
