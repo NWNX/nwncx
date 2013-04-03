@@ -17,8 +17,9 @@ NWNMSClient::NWNMSClient(FILE *logFile, ServerListCallback_t serverListCallback)
 	InitializeCriticalSection(&cs);
 }
 
-NWNMSClient::~NWNMSClient() {
-
+NWNMSClient::~NWNMSClient()
+{
+	DeleteCriticalSection(&cs);
 }
 
 void NWNMSClient::RequestServerList(int roomId)

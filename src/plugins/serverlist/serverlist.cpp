@@ -125,7 +125,7 @@ int __fastcall CGameSpyClient__JoinGroupRoom_Hook(void *pGameSpy, int edx, int n
 {		
 	client->RequestServerList(nRoom);
 
-	//return 	CGameSpyClient__JoinGroupRoom(pGameSpy, edx, nRoom);
+	CGameSpyClient__JoinGroupRoom(pGameSpy, edx, nRoom);
 	return true;
 }
 
@@ -134,6 +134,29 @@ void __fastcall CConnectionLib__UpdateGameSpyClient_Hook(CConnectionLib *pConnec
 {
 	CConnectionLib__UpdateGameSpyClient();
 	client->Update();
+}
+
+void EnableWrite (unsigned long location)
+{
+	unsigned char *page;
+	DWORD oldAlloc;
+	page = (unsigned char *) location;
+	VirtualProtect(page, 0xFF, PAGE_EXECUTE_READWRITE, &oldAlloc);
+}
+
+void PatchImage()
+{
+	char *patch = (char *) 0x008050C1;
+	EnableWrite((DWORD) patch);
+	memset(patch, 0x90, 5);                 //remove call to _peerStopListingGames
+
+	patch = (char *) 0x008050CC;
+	EnableWrite((DWORD) patch);
+	memset(patch, 0x90, 5);                 //remove call to CConnectionLib::ClearServers()
+
+	patch = (char *) 0x00805210;
+	EnableWrite((DWORD) patch);
+	memset(patch, 0x90, 5);                 //remove call to _peerStartListingGames
 }
 
 void HookFunctions()
@@ -152,12 +175,13 @@ void HookFunctions()
 void InitPlugin()
 {
 	logFile = fopen(logFileName, "w");
-	fprintf(logFile, "NWCX Serverlist plugin 1.0.1\n");
+	fprintf(logFile, "NWCX Serverlist plugin 1.0.2\n");
 	fprintf(logFile, "(c) 2013 by virusman & addicted2rpg\n");
 	fflush(logFile);
 	if(pluginLink){
 	}
 	HookFunctions();
+	PatchImage();
 	client = new NWNMSClient(logFile, ServerListCallback);
 }
 
