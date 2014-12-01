@@ -99,7 +99,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\include\nwnapi\custom\nwn_globals.cpp" />
-    <ClCompile Include="NWMSClient.cpp" />
+    <ClCompile Include="CGameSpyStub.cpp" />
+    <ClCompile Include="NWNMSClient.cpp" />
     <ClCompile Include="serverlist.cpp" />
     <ClCompile Include="soap\soapC.cpp" />
     <ClCompile Include="soap\soapWSHttpBinding_USCOREINWNMasterServerAPIProxy.cpp" />
@@ -114,6 +115,7 @@
     <ClInclude Include="..\..\..\include\nwnapi\CClientExoAppInternal.h" />
     <ClInclude Include="..\..\..\include\nwnapi\CConnectionLib.h" />
     <ClInclude Include="..\..\..\include\nwnapi\CExoString.h" />
+    <ClInclude Include="CGameSpyStub.h" />
     <ClInclude Include="NWNMSClient.h" />
     <ClInclude Include="soap\soapH.h" />
     <ClInclude Include="soap\soapStub.h" />

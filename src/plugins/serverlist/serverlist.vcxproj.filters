@@ -36,7 +36,10 @@
     <ClCompile Include="soap\stdsoap2.cpp">
       <Filter>Source Files\SOAP</Filter>
     </ClCompile>
-    <ClCompile Include="NWMSClient.cpp">
+    <ClCompile Include="CGameSpyStub.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NWNMSClient.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -75,6 +78,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\nwnapi\CConnectionLib.h">
       <Filter>Header Files\nwnapi</Filter>
+    </ClInclude>
+    <ClInclude Include="CGameSpyStub.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
